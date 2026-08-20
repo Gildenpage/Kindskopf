@@ -85,16 +85,21 @@ footer{padding:45px 20px;text-align:center;color:#777;border-top:1px solid var(-
 <div id="adminStatus" class="admin-status">🔐 Admin-Modus aktiv</div><div id="toast" class="toast"></div>
 <div id="modal" class="modal"><div class="modal-box"><button class="close-modal" onclick="closeModal()">×</button><div id="modalContent"></div></div></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 
-/* ===== KONFIGURATION =====
-   Diese Daten liegen bewusst lokal im Browser.
-   Für eine echte Mehrbenutzer-Webseite braucht es ein Backend.
-*/
-const ADMIN_USER="admin";
-const ADMIN_PASSWORD="Kindsköpfe2026!";
-const STORAGE_KEY="kindskopfePortalV5";
+/* =========================================================
+   KINDKÖPFE – ONLINE VERSION
+   Datenbank: Supabase
+   ---------------------------------------------------------
+   1. SUPABASE_URL eintragen
+   2. SUPABASE_PUBLISHABLE_KEY eintragen
+   3. SQL-Datei einmal im Supabase SQL Editor ausführen
+   4. Admin-Benutzer in Supabase Auth anlegen
+   ========================================================= */
+const SUPABASE_URL = "DEINE_SUPABASE_URL";
+const SUPABASE_PUBLISHABLE_KEY = "DEIN_SUPABASE_PUBLISHABLE_KEY";
 
 const wowClasses={
  "Todesritter":[["Blut","Tank"],["Frost","DD"],["Unheilig","DD"]],
@@ -110,41 +115,18 @@ const wowClasses={
  "Krieger":[["Waffen","DD"],["Furor","DD"],["Schutz","Tank"]]
 };
 
-function defaultData(){
- return {
-  news:[{id:Date.now(),title:"Willkommen bei den Kindsköpfen!",text:"Willkommen auf unserem neuen Raid- und Event-Portal.",date:new Date().toLocaleDateString("de-DE")}],
-  raids:[],events:[],calendarEntries:[]
- };
-}
-function normalizeData(d){
- return {
-  news:Array.isArray(d?.news)?d.news:[],
-  raids:Array.isArray(d?.raids)?d.raids:[],
-  events:Array.isArray(d?.events)?d.events:[],
-  calendarEntries:Array.isArray(d?.calendarEntries)?d.calendarEntries:[]
- };
-}
-function loadData(){
- try{
-  const raw=localStorage.getItem(STORAGE_KEY);
-  return raw?normalizeData(JSON.parse(raw)):defaultData();
- }catch(e){console.error(e);return defaultData();}
-}
-let data=loadData(), news=data.news, raids=data.raids, events=data.events, calendarEntries=data.calendarEntries;
-let isAdmin=false, calendarDate=new Date();
+let supabaseClient=null;
+let news=[],raids=[],events=[],calendarEntries=[];
+let isAdmin=false,calendarDate=new Date();
 
-function saveData(){
- try{
-  localStorage.setItem(STORAGE_KEY,JSON.stringify({news,raids,events,calendarEntries}));
- }catch(e){alert("Die Browser-Speicherung ist nicht verfügbar.");console.error(e);}
+function configured(){return !SUPABASE_URL.startsWith("DEINE_")&&!SUPABASE_PUBLISHABLE_KEY.startsWith("DEIN_");}
+function initSupabase(){
+ if(!configured()) return false;
+ supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+ return true;
 }
-function escapeHTML(v){
- return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
-}
-function formatDate(date){
- const d=new Date(date+"T12:00:00");
- return Number.isNaN(d.getTime())?date:d.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});
-}
+function escapeHTML(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+function formatDate(date){const d=new Date(date+"T12:00:00");return Number.isNaN(d.getTime())?date:d.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});}
 function getStartDate(item){return new Date(`${item.date}T${item.time||"00:00"}:00`);}
 function scrollToSection(id){document.getElementById(id)?.scrollIntoView({behavior:"smooth"});}
 function openModal(html){document.getElementById("modalContent").innerHTML=html;document.getElementById("modal").classList.add("active");}
@@ -152,197 +134,128 @@ function closeModal(){document.getElementById("modal").classList.remove("active"
 document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal();});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
 function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.classList.remove("show"),2500);}
+function dbError(error){console.error(error);showToast("❌ Datenbankfehler – bitte Konfiguration/RLS prüfen.");}
+
+async function refreshData(){
+ if(!supabaseClient)return;
+ const [n,r,e,c,s] = await Promise.all([
+  supabaseClient.from("news").select("*").order("created_at",{ascending:false}),
+  supabaseClient.from("raids").select("*").order("date",{ascending:true}).order("time",{ascending:true}),
+  supabaseClient.from("events").select("*").order("date",{ascending:true}).order("time",{ascending:true}),
+  supabaseClient.from("calendar_entries").select("*").order("date",{ascending:true}).order("time",{ascending:true}),
+  supabaseClient.from("signups").select("*").order("created_at",{ascending:true})
+ ]);
+ for(const x of [n,r,e,c,s]) if(x.error){dbError(x.error);return;}
+ news=n.data||[];raids=r.data||[];events=e.data||[];calendarEntries=c.data||[];
+ const signups=s.data||[];
+ raids.forEach(x=>x.players=signups.filter(p=>p.item_type==="raid"&&p.item_id===x.id));
+ events.forEach(x=>x.players=signups.filter(p=>p.item_type==="event"&&p.item_id===x.id));
+ renderAll();
+}
+
+async function init(){
+ if(!initSupabase()){
+  document.getElementById("newsContainer").innerHTML='<div class="news-card"><h3>⚠️ Supabase noch nicht eingerichtet</h3><div class="news-text">Öffne die HTML-Datei und trage oben SUPABASE_URL und SUPABASE_PUBLISHABLE_KEY ein. Danach die SQL-Datei in Supabase ausführen und die Seite neu auf Netlify deployen.</div></div>';
+  renderCalendar();return;
+ }
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ await updateAdminState(session);
+ await refreshData();
+ supabaseClient.auth.onAuthStateChange(async (_event,session)=>{await updateAdminState(session);await refreshData();});
+}
+async function updateAdminState(session){
+ if(!session){isAdmin=false;updateAdminStatus();return;}
+ const {data,error}=await supabaseClient.from("admin_users").select("user_id").eq("user_id",session.user.id).maybeSingle();
+ isAdmin=!!data&&!error;updateAdminStatus();
+}
 function updateAdminStatus(){document.getElementById("adminStatus").classList.toggle("active",isAdmin);}
 
-/* ===== ADMIN ===== */
-function openAdminLogin(){
- if(isAdmin){isAdmin=false;updateAdminStatus();renderAll();showToast("Admin-Modus beendet.");return;}
+/* ===== ADMIN AUTH ===== */
+async function openAdminLogin(){
+ if(isAdmin){await supabaseClient.auth.signOut();showToast("🔐 Admin-Modus beendet.");return;}
  openModal(`<h2>🔐 Admin Login</h2>
- <div class="form-group"><label>Benutzername</label><input id="adminUser" autocomplete="username"></div>
+ <div class="form-group"><label>Admin-E-Mail</label><input id="adminEmail" type="email" autocomplete="username"></div>
  <div class="form-group"><label>Passwort</label><input id="adminPassword" type="password" autocomplete="current-password"></div>
+ <p class="muted">Der Admin-Zugang läuft über Supabase Auth. Das Passwort wird nicht in dieser HTML-Datei gespeichert.</p>
  <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="loginAdmin()">Einloggen</button></div>`);
- setTimeout(()=>document.getElementById("adminUser")?.focus(),50);
 }
-function loginAdmin(){
- const u=document.getElementById("adminUser")?.value||"",p=document.getElementById("adminPassword")?.value||"";
- if(u===ADMIN_USER&&p===ADMIN_PASSWORD){isAdmin=true;closeModal();updateAdminStatus();renderAll();showToast("🔐 Admin-Modus aktiviert.");}
- else alert("Benutzername oder Passwort falsch.");
+async function loginAdmin(){
+ const email=document.getElementById("adminEmail")?.value.trim(),password=document.getElementById("adminPassword")?.value||"";
+ if(!email||!password){alert("Bitte E-Mail und Passwort eingeben.");return;}
+ const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+ if(error){alert("Login fehlgeschlagen: "+error.message);return;}
+ closeModal();showToast("🔐 Admin-Modus aktiviert.");
 }
 
 /* ===== NEWS ===== */
 function openNewsForm(){
  if(!isAdmin){alert("Nur der Admin kann News erstellen.");return;}
- openModal(`<h2>📰 News erstellen</h2>
- <div class="form-group"><label>Überschrift *</label><input id="newsTitle"></div>
- <div class="form-group"><label>Nachricht *</label><textarea id="newsText"></textarea></div>
- <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="saveNews()">Veröffentlichen</button></div>`);
+ openModal(`<h2>📰 News erstellen</h2><div class="form-group"><label>Überschrift *</label><input id="newsTitle"></div><div class="form-group"><label>Nachricht *</label><textarea id="newsText"></textarea></div><div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="saveNews()">Veröffentlichen</button></div>`);
 }
-function saveNews(){
- const title=document.getElementById("newsTitle").value.trim(),text=document.getElementById("newsText").value.trim();
- if(!title||!text){alert("Bitte alle Felder ausfüllen.");return;}
- news.unshift({id:Date.now(),title,text,date:new Date().toLocaleDateString("de-DE")});
- saveData();closeModal();renderNews();showToast("📰 News veröffentlicht.");
+async function saveNews(){
+ const title=document.getElementById("newsTitle").value.trim(),text=document.getElementById("newsText").value.trim();if(!title||!text){alert("Bitte alle Felder ausfüllen.");return;}
+ const {error}=await supabaseClient.from("news").insert({title,text});if(error){dbError(error);return;}closeModal();await refreshData();showToast("📰 News veröffentlicht.");
 }
-function deleteNews(id){
- if(!isAdmin)return;
- if(!confirm("News wirklich löschen?"))return;
- news=news.filter(n=>n.id!==id);saveData();renderNews();showToast("News gelöscht.");
-}
-function renderNews(){
- const c=document.getElementById("newsContainer");c.innerHTML="";
- if(!news.length){c.innerHTML='<div class="news-card">Noch keine News vorhanden.</div>';return;}
- news.forEach(n=>c.insertAdjacentHTML("beforeend",`<article class="news-card"><h3>${escapeHTML(n.title)}</h3><div class="news-date">${escapeHTML(n.date)}</div><div class="news-text">${escapeHTML(n.text)}</div>${isAdmin?`<br><button class="btn btn-danger btn-small" onclick="deleteNews(${n.id})">🗑️ Löschen</button>`:""}</article>`));
-}
+async function deleteNews(id){if(!isAdmin||!confirm("News wirklich löschen?"))return;const {error}=await supabaseClient.from("news").delete().eq("id",id);if(error){dbError(error);return;}await refreshData();showToast("News gelöscht.");}
+function renderNews(){const c=document.getElementById("newsContainer");c.innerHTML="";if(!news.length){c.innerHTML='<div class="news-card">Noch keine News vorhanden.</div>';return;}news.forEach(n=>c.insertAdjacentHTML("beforeend",`<article class="news-card"><h3>${escapeHTML(n.title)}</h3><div class="news-date">${escapeHTML(new Date(n.created_at).toLocaleDateString("de-DE"))}</div><div class="news-text">${escapeHTML(n.text)}</div>${isAdmin?`<br><button class="btn btn-danger btn-small" onclick="deleteNews(${n.id})">🗑️ Löschen</button>`:""}</article>`));}
 
 /* ===== KALENDER ===== */
 function openCalendarEntryForm(id=null){
- if(!isAdmin){alert("Nur der Admin kann Kalendereinträge erstellen.");return;}
- const e=id===null?null:calendarEntries.find(x=>x.id===id); if(id!==null&&!e)return;
- openModal(`<h2>📅 ${e?"Kalendereintrag bearbeiten":"Kalendereintrag erstellen"}</h2>
- <div class="form-group"><label>Titel *</label><input id="calTitle" value="${e?escapeHTML(e.title):""}"></div>
- <div class="form-group"><label>Art</label><select id="calType">
- <option value="Info">ℹ️ Information</option><option value="Gildenevent">🎉 Gildenevent</option><option value="Raid">⚔️ Raid</option><option value="Geburtstag">🎂 Geburtstag</option><option value="Sonstiges">📌 Sonstiges</option></select></div>
- <div class="form-row"><div class="form-group"><label>Datum *</label><input type="date" id="calDate" value="${e?.date||""}"></div>
- <div class="form-group"><label>Uhrzeit</label><input type="time" id="calTime" value="${e?.time||"20:00"}"></div></div>
- <div class="form-group"><label>Beschreibung</label><textarea id="calDescription">${e?escapeHTML(e.description):""}</textarea></div>
- <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="saveCalendarEntry(${id===null?"null":id})">💾 Speichern</button></div>`);
+ if(!isAdmin){alert("Nur der Admin kann Kalendereinträge erstellen.");return;}const e=id===null?null:calendarEntries.find(x=>x.id===id);if(id!==null&&!e)return;
+ openModal(`<h2>📅 ${e?"Kalendereintrag bearbeiten":"Kalendereintrag erstellen"}</h2><div class="form-group"><label>Titel *</label><input id="calTitle" value="${e?escapeHTML(e.title):""}"></div><div class="form-group"><label>Art</label><select id="calType"><option>Info</option><option>Gildenevent</option><option>Raid</option><option>Geburtstag</option><option>Sonstiges</option></select></div><div class="form-row"><div class="form-group"><label>Datum *</label><input type="date" id="calDate" value="${e?.date||""}"></div><div class="form-group"><label>Uhrzeit</label><input type="time" id="calTime" value="${e?.time||"20:00"}"></div></div><div class="form-group"><label>Beschreibung</label><textarea id="calDescription">${e?escapeHTML(e.description):""}</textarea></div><div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="saveCalendarEntry(${id===null?"null":id})">💾 Speichern</button></div>`);
  if(e)document.getElementById("calType").value=e.type;
 }
-function saveCalendarEntry(id){
- const title=document.getElementById("calTitle").value.trim(),type=document.getElementById("calType").value,date=document.getElementById("calDate").value,time=document.getElementById("calTime").value,description=document.getElementById("calDescription").value.trim();
- if(!title||!date){alert("Titel und Datum sind erforderlich.");return;}
- if(id===null)calendarEntries.push({id:Date.now(),title,type,date,time,description});
- else{const e=calendarEntries.find(x=>x.id===id);if(!e)return;Object.assign(e,{title,type,date,time,description});}
- saveData();closeModal();renderCalendar();showToast("📅 Kalender aktualisiert.");
+async function saveCalendarEntry(id){
+ const payload={title:document.getElementById("calTitle").value.trim(),type:document.getElementById("calType").value,date:document.getElementById("calDate").value,time:document.getElementById("calTime").value,description:document.getElementById("calDescription").value.trim()};if(!payload.title||!payload.date){alert("Titel und Datum sind erforderlich.");return;}
+ const q=id===null?supabaseClient.from("calendar_entries").insert(payload):supabaseClient.from("calendar_entries").update(payload).eq("id",id);const {error}=await q;if(error){dbError(error);return;}closeModal();await refreshData();showToast("📅 Kalender aktualisiert.");
 }
-function deleteCalendarEntry(id){
- if(!isAdmin||!confirm("Kalendereintrag löschen?"))return;
- calendarEntries=calendarEntries.filter(e=>e.id!==id);saveData();renderCalendar();showToast("Kalendereintrag gelöscht.");
-}
+async function deleteCalendarEntry(id){if(!isAdmin||!confirm("Kalendereintrag löschen?"))return;const {error}=await supabaseClient.from("calendar_entries").delete().eq("id",id);if(error){dbError(error);return;}await refreshData();showToast("Kalendereintrag gelöscht.");}
 function changeMonth(n){calendarDate.setMonth(calendarDate.getMonth()+n);renderCalendar();}
 function renderCalendar(){
- const y=calendarDate.getFullYear(),m=calendarDate.getMonth();
- document.getElementById("calendarTitle").textContent=new Date(y,m,1).toLocaleDateString("de-DE",{month:"long",year:"numeric"});
- const first=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate(),grid=document.getElementById("calendarGrid");grid.innerHTML="";
- for(let i=0;i<first;i++)grid.insertAdjacentHTML("beforeend",'<div class="calendar-day"></div>');
- const now=new Date();
- for(let d=1;d<=days;d++){
-  const date=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,today=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;
-  let h=`<div class="calendar-day ${today?"today":""}"><div class="day-number">${d}</div>`;
-  raids.filter(r=>r.date===date).forEach(r=>h+=`<div class="calendar-item calendar-raid">⚔️ ${escapeHTML(r.time)} · ${escapeHTML(r.name)}</div>`);
-  events.filter(e=>e.date===date).forEach(e=>h+=`<div class="calendar-item calendar-event">🎉 ${escapeHTML(e.time)} · ${escapeHTML(e.name)}</div>`);
-  calendarEntries.filter(e=>e.date===date).forEach(e=>h+=`<div class="calendar-item calendar-info">${escapeHTML(e.type)} · ${escapeHTML(e.time||"")} · ${escapeHTML(e.title)}${isAdmin?`<br><button class="btn btn-secondary btn-small" onclick="openCalendarEntryForm(${e.id})">✏️</button> <button class="btn btn-danger btn-small" onclick="deleteCalendarEntry(${e.id})">🗑️</button>`:""}</div>`);
-  grid.insertAdjacentHTML("beforeend",h+"</div>");
- }
+ const y=calendarDate.getFullYear(),m=calendarDate.getMonth();document.getElementById("calendarTitle").textContent=new Date(y,m,1).toLocaleDateString("de-DE",{month:"long",year:"numeric"});const first=(new Date(y,m,1).getDay()+6)%7,days=new Date(y,m+1,0).getDate(),grid=document.getElementById("calendarGrid");grid.innerHTML="";for(let i=0;i<first;i++)grid.insertAdjacentHTML("beforeend",'<div class="calendar-day"></div>');const now=new Date();
+ for(let d=1;d<=days;d++){const date=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,today=now.getFullYear()===y&&now.getMonth()===m&&now.getDate()===d;let h=`<div class="calendar-day ${today?"today":""}"><div class="day-number">${d}</div>`;raids.filter(r=>r.date===date).forEach(r=>h+=`<div class="calendar-item calendar-raid">⚔️ ${escapeHTML(r.time)} · ${escapeHTML(r.name)}</div>`);events.filter(e=>e.date===date).forEach(e=>h+=`<div class="calendar-item calendar-event">🎉 ${escapeHTML(e.time)} · ${escapeHTML(e.name)}</div>`);calendarEntries.filter(e=>e.date===date).forEach(e=>h+=`<div class="calendar-item calendar-info">${escapeHTML(e.type)} · ${escapeHTML(e.time||"")} · ${escapeHTML(e.title)}${isAdmin?`<br><button class="btn btn-secondary btn-small" onclick="openCalendarEntryForm(${e.id})">✏️</button> <button class="btn btn-danger btn-small" onclick="deleteCalendarEntry(${e.id})">🗑️</button>`:""}</div>`);grid.insertAdjacentHTML("beforeend",h+"</div>");}
 }
 
-/* ===== RAID ===== */
+/* ===== RAIDS ===== */
 function openRaidForm(id=null){
- if(!isAdmin){alert("Nur der Admin kann Raids erstellen.");return;}
- const r=id===null?null:raids.find(x=>x.id===id);if(id!==null&&!r)return;
- openModal(`<h2>⚔️ ${r?"Raid bearbeiten":"Raid erstellen"}</h2>
- <div class="form-group"><label>Raidname *</label><input id="raidName" value="${r?escapeHTML(r.name):""}" placeholder="z.B. Mogu'shan Palast"></div>
- <div class="form-group"><label>Raidgröße *</label><select id="raidSize"><option value="10">10 Spieler</option><option value="25">25 Spieler</option></select></div>
- <div class="form-row"><div class="form-group"><label>Datum *</label><input type="date" id="raidDate" value="${r?.date||""}"></div><div class="form-group"><label>Startzeit *</label><input type="time" id="raidTime" value="${r?.time||"20:00"}"></div></div>
- <h3 style="color:var(--gold)">Rollenanforderungen</h3>
- <div class="role-limit-form"><div><label>🛡️ Tanks</label><input type="number" id="raidTankLimit" min="0" max="10" value="${r?.tankLimit??2}"></div><div><label>💚 Heiler</label><input type="number" id="raidHealLimit" min="0" max="25" value="${r?.healLimit??5}"></div><div><label>⚔️ DDs</label><input type="number" id="raidDDLimit" min="0" max="25" value="${r?.ddLimit??3}"></div></div>
- <p id="raidTotalPreview" class="muted"></p><div class="form-group"><label>Beschreibung</label><textarea id="raidDescription">${r?escapeHTML(r.description):""}</textarea></div>
- <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="saveRaid(${id===null?"null":id})">💾 Raid speichern</button></div>`);
- document.getElementById("raidSize").value=String(r?.size||10);updateRaidTotal();
- ["raidTankLimit","raidHealLimit","raidDDLimit","raidSize"].forEach(x=>document.getElementById(x).addEventListener("input",updateRaidTotal));
+ if(!isAdmin){alert("Nur der Admin kann Raids erstellen.");return;}const r=id===null?null:raids.find(x=>x.id===id);if(id!==null&&!r)return;
+ openModal(`<h2>⚔️ ${r?"Raid bearbeiten":"Raid erstellen"}</h2><div class="form-group"><label>Raidname *</label><input id="raidName" value="${r?escapeHTML(r.name):""}" placeholder="z.B. Mogu'shan Palast"></div><div class="form-group"><label>Raidgröße *</label><select id="raidSize"><option value="10">10 Spieler</option><option value="25">25 Spieler</option></select></div><div class="form-row"><div class="form-group"><label>Datum *</label><input type="date" id="raidDate" value="${r?.date||""}"></div><div class="form-group"><label>Startzeit *</label><input type="time" id="raidTime" value="${r?.time||"20:00"}"></div></div><h3 style="color:var(--gold)">Rollenanforderungen</h3><div class="role-limit-form"><div><label>🛡️ Tanks</label><input type="number" id="raidTankLimit" min="0" max="25" value="${r?.tank_limit??2}"></div><div><label>💚 Heiler</label><input type="number" id="raidHealLimit" min="0" max="25" value="${r?.heal_limit??5}"></div><div><label>⚔️ DDs</label><input type="number" id="raidDDLimit" min="0" max="25" value="${r?.dd_limit??3}"></div></div><p id="raidTotalPreview" class="muted"></p><div class="form-group"><label>Beschreibung</label><textarea id="raidDescription">${r?escapeHTML(r.description):""}</textarea></div><div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="saveRaid(${id===null?"null":id})">💾 Raid speichern</button></div>`);document.getElementById("raidSize").value=String(r?.size||10);updateRaidTotal();["raidTankLimit","raidHealLimit","raidDDLimit","raidSize"].forEach(x=>document.getElementById(x).addEventListener("input",updateRaidTotal));
 }
-function updateRaidTotal(){
- const a=+document.getElementById("raidTankLimit")?.value||0,b=+document.getElementById("raidHealLimit")?.value||0,c=+document.getElementById("raidDDLimit")?.value||0,s=+document.getElementById("raidSize")?.value||0,total=a+b+c;
- const p=document.getElementById("raidTotalPreview");if(!p)return;p.innerHTML=total>s?`<span style="color:#ff6969">⚠️ ${total}/${s} Rollen – zu viele!</span>`:`Rollen: ${total}/${s}`;
+function updateRaidTotal(){const a=+document.getElementById("raidTankLimit")?.value||0,b=+document.getElementById("raidHealLimit")?.value||0,c=+document.getElementById("raidDDLimit")?.value||0,s=+document.getElementById("raidSize")?.value||0,p=document.getElementById("raidTotalPreview");if(p)p.innerHTML=a+b+c>s?`<span style="color:#ff6969">⚠️ ${a+b+c}/${s} Rollen – zu viele!</span>`:`Rollen: ${a+b+c}/${s}`;}
+async function saveRaid(id){
+ const payload={name:document.getElementById("raidName").value.trim(),size:+document.getElementById("raidSize").value,date:document.getElementById("raidDate").value,time:document.getElementById("raidTime").value,tank_limit:+document.getElementById("raidTankLimit").value,heal_limit:+document.getElementById("raidHealLimit").value,dd_limit:+document.getElementById("raidDDLimit").value,description:document.getElementById("raidDescription").value.trim()};if(!payload.name||!payload.date||!payload.time){alert("Raidname, Datum und Startzeit sind erforderlich.");return;}if(payload.tank_limit+payload.heal_limit+payload.dd_limit>payload.size){alert("Die Rollenanforderungen dürfen die Raidgröße nicht überschreiten.");return;}
+ if(id!==null){const r=raids.find(x=>x.id===id);if(r&&r.players.length>payload.size){alert("Die Raidgröße kann nicht kleiner als die Teilnehmerzahl sein.");return;}if(r&&r.players.filter(p=>p.role==="Tank").length>payload.tank_limit||r&&r.players.filter(p=>p.role==="Heiler").length>payload.heal_limit||r&&r.players.filter(p=>p.role==="DD").length>payload.dd_limit){alert("Ein Rollenlimit ist kleiner als bereits angemeldete Spieler.");return;}}
+ const q=id===null?supabaseClient.from("raids").insert(payload):supabaseClient.from("raids").update(payload).eq("id",id);const {error}=await q;if(error){dbError(error);return;}closeModal();await refreshData();showToast(id===null?"⚔️ Raid erstellt.":"⚔️ Raid aktualisiert.");
 }
-function saveRaid(id){
- const name=document.getElementById("raidName").value.trim(),size=+document.getElementById("raidSize").value,date=document.getElementById("raidDate").value,time=document.getElementById("raidTime").value,tankLimit=+document.getElementById("raidTankLimit").value,healLimit=+document.getElementById("raidHealLimit").value,ddLimit=+document.getElementById("raidDDLimit").value,description=document.getElementById("raidDescription").value.trim();
- if(!name||!date||!time){alert("Raidname, Datum und Startzeit sind erforderlich.");return;}
- if([tankLimit,healLimit,ddLimit].some(n=>n<0)||tankLimit+healLimit+ddLimit>size){alert("Die Rollenanforderungen dürfen die Raidgröße nicht überschreiten.");return;}
- if(id===null)raids.push({id:Date.now(),name,size,date,time,tankLimit,healLimit,ddLimit,description,players:[]});
- else{const r=raids.find(x=>x.id===id);if(!r)return;if(r.players.length>size){alert("Die Raidgröße kann nicht kleiner als die Teilnehmerzahl sein.");return;}for(const [count,limit,role] of [[r.players.filter(p=>p.role==="Tank").length,tankLimit,"Tank"],[r.players.filter(p=>p.role==="Heiler").length,healLimit,"Heiler"],[r.players.filter(p=>p.role==="DD").length,ddLimit,"DD"]])if(count>limit){alert(`Das neue Limit für ${role} ist kleiner als bereits angemeldete Spieler.`);return;}Object.assign(r,{name,size,date,time,tankLimit,healLimit,ddLimit,description});}
- saveData();closeModal();renderAll();showToast(id===null?"⚔️ Raid erstellt.":"⚔️ Raid aktualisiert.");
-}
-function deleteRaid(id){if(!isAdmin)return;const r=raids.find(x=>x.id===id);if(r&&confirm(`Raid "${r.name}" wirklich löschen?`)){raids=raids.filter(x=>x.id!==id);saveData();renderAll();}}
-function removeRaidPlayer(rid,pid){if(!isAdmin)return;const r=raids.find(x=>x.id===rid);const p=r?.players.find(x=>x.id===pid);if(r&&p&&confirm(`Anmeldung von ${p.player} entfernen?`)){r.players=r.players.filter(x=>x.id!==pid);saveData();renderAll();}}
-function renderCountdown(item){
- let ms=getStartDate(item)-Date.now();if(ms<=0)return `<div class="countdown"><div class="countdown-title">Status</div><div class="countdown-value started">🔴 STARTZEIT ERREICHT</div></div>`;
- let s=Math.floor(ms/1000),d=Math.floor(s/86400);s%=86400;let h=Math.floor(s/3600);s%=3600;let min=Math.floor(s/60);s%=60;
- return `<div class="countdown"><div class="countdown-title">⏳ Beginn in</div><div class="countdown-value"><span>${d}</span> Tage · <span>${String(h).padStart(2,"0")}</span> Stunden · <span>${String(min).padStart(2,"0")}</span> Minuten · <span>${String(s).padStart(2,"0")}</span> Sekunden</div></div>`;
-}
+async function deleteRaid(id){if(!isAdmin)return;const r=raids.find(x=>x.id===id);if(!r||!confirm(`Raid "${r.name}" wirklich löschen?`))return;const {error}=await supabaseClient.from("raids").delete().eq("id",id);if(error){dbError(error);return;}await refreshData();}
+async function removeRaidPlayer(rid,pid){if(!isAdmin)return;if(!confirm("Anmeldung wirklich entfernen?"))return;const {error}=await supabaseClient.from("signups").delete().eq("id",pid);if(error){dbError(error);return;}await refreshData();}
+function renderCountdown(item){let ms=getStartDate(item)-Date.now();if(ms<=0)return `<div class="countdown"><div class="countdown-title">Status</div><div class="countdown-value started">🔴 STARTZEIT ERREICHT</div></div>`;let s=Math.floor(ms/1000),d=Math.floor(s/86400);s%=86400;let h=Math.floor(s/3600);s%=3600;let min=Math.floor(s/60);s%=60;return `<div class="countdown"><div class="countdown-title">⏳ Beginn in</div><div class="countdown-value"><span>${d}</span> Tage · <span>${String(h).padStart(2,"0")}</span> Stunden · <span>${String(min).padStart(2,"0")}</span> Minuten · <span>${String(s).padStart(2,"0")}</span> Sekunden</div></div>`;}
 function renderRaids(){
- const c=document.getElementById("raidContainer");c.innerHTML="";if(!raids.length){c.innerHTML='<div class="raid-card"><div class="card-body muted">Noch keine Raids erstellt.</div></div>';return;}
- raids.slice().sort((a,b)=>getStartDate(a)-getStartDate(b)).forEach(r=>{
-  r.players=r.players||[];const tanks=r.players.filter(p=>p.role==="Tank").length,heals=r.players.filter(p=>p.role==="Heiler").length,dds=r.players.filter(p=>p.role==="DD").length,free=Math.max(0,r.size-r.players.length),pct=Math.min(100,r.players.length/r.size*100);
-  let ph=r.players.map(p=>`<div class="player-card"><strong>${escapeHTML(p.player)}</strong><small>⚔️ ${escapeHTML(p.character)}</small><small>${escapeHTML(p.className)} · ${escapeHTML(p.spec)}</small><small>${escapeHTML(p.role)}</small>${isAdmin?`<button class="remove-player" onclick="removeRaidPlayer(${r.id},${p.id})">×</button>`:""}</div>`).join("");
-  for(let i=r.players.length;i<r.size;i++)ph+='<div class="player-card"><span class="empty-slot">Freier Platz</span></div>';
-  c.insertAdjacentHTML("beforeend",`<article class="raid-card"><div class="card-header"><div><div class="card-title">⚔️ ${escapeHTML(r.name)}</div><div class="card-meta">👥 ${r.size} Spieler<br>📅 ${formatDate(r.date)}<br>🕐 ${escapeHTML(r.time)} Uhr</div></div>${isAdmin?`<div><button class="btn btn-secondary btn-small" onclick="openRaidForm(${r.id})">✏️ Bearbeiten</button> <button class="btn btn-danger btn-small" onclick="deleteRaid(${r.id})">🗑️ Löschen</button></div>`:""}</div><div class="card-body">${renderCountdown(r)}${r.description?`<p class="card-description">${escapeHTML(r.description)}</p>`:""}<div class="requirements"><div class="requirement tank"><strong>${tanks}/${r.tankLimit}</strong>🛡️ Tanks benötigt</div><div class="requirement heal"><strong>${heals}/${r.healLimit}</strong>💚 Heiler benötigt</div><div class="requirement dd"><strong>${dds}/${r.ddLimit}</strong>⚔️ DDs benötigt</div></div><div class="role-grid"><div class="role-box tank"><span class="role-number">${tanks}</span>🛡️ Tanks</div><div class="role-box heal"><span class="role-number">${heals}</span>💚 Heiler</div><div class="role-box dd"><span class="role-number">${dds}</span>⚔️ DDs</div><div class="role-box free"><span class="role-number">${free}</span>👥 Frei</div></div><div class="progress-label"><span>Teilnehmer</span><span>${r.players.length}/${r.size}</span></div><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div><div class="player-grid">${ph}</div><br>${free>0?`<button class="btn btn-primary" onclick="openSignup('raid',${r.id})">+ Für Raid anmelden</button>`:'<span class="muted">🔒 Raid ist voll.</span>'}</div></article>`);
- });
-}
+ const c=document.getElementById("raidContainer");c.innerHTML="";if(!raids.length){c.innerHTML='<div class="raid-card"><div class="card-body muted">Noch keine Raids erstellt.</div></div>';return;}raids.slice().sort((a,b)=>getStartDate(a)-getStartDate(b)).forEach(r=>{r.players=r.players||[];const tanks=r.players.filter(p=>p.role==="Tank").length,heals=r.players.filter(p=>p.role==="Heiler").length,dds=r.players.filter(p=>p.role==="DD").length,free=Math.max(0,r.size-r.players.length),pct=Math.min(100,r.players.length/r.size*100);let ph=r.players.map(p=>`<div class="player-card"><strong>${escapeHTML(p.player)}</strong><small>⚔️ ${escapeHTML(p.character)}</small><small>${escapeHTML(p.class_name)} · ${escapeHTML(p.spec)}</small><small>${escapeHTML(p.role)}</small>${isAdmin?`<button class="remove-player" onclick="removeRaidPlayer(${r.id},${p.id})">×</button>`:""}</div>`).join("");for(let i=r.players.length;i<r.size;i++)ph+='<div class="player-card"><span class="empty-slot">Freier Platz</span></div>';c.insertAdjacentHTML("beforeend",`<article class="raid-card"><div class="card-header"><div><div class="card-title">⚔️ ${escapeHTML(r.name)}</div><div class="card-meta">👥 ${r.size} Spieler<br>📅 ${formatDate(r.date)}<br>🕐 ${escapeHTML(r.time)} Uhr</div></div>${isAdmin?`<div><button class="btn btn-secondary btn-small" onclick="openRaidForm(${r.id})">✏️ Bearbeiten</button> <button class="btn btn-danger btn-small" onclick="deleteRaid(${r.id})">🗑️ Löschen</button></div>`:""}</div><div class="card-body">${renderCountdown(r)}${r.description?`<p class="card-description">${escapeHTML(r.description)}</p>`:""}<div class="requirements"><div class="requirement tank"><strong>${tanks}/${r.tank_limit}</strong>🛡️ Tanks benötigt</div><div class="requirement heal"><strong>${heals}/${r.heal_limit}</strong>💚 Heiler benötigt</div><div class="requirement dd"><strong>${dds}/${r.dd_limit}</strong>⚔️ DDs benötigt</div></div><div class="role-grid"><div class="role-box tank"><span class="role-number">${tanks}</span>🛡️ Tanks</div><div class="role-box heal"><span class="role-number">${heals}</span>💚 Heiler</div><div class="role-box dd"><span class="role-number">${dds}</span>⚔️ DDs</div><div class="role-box free"><span class="role-number">${free}</span>👥 Frei</div></div><div class="progress-label"><span>Teilnehmer</span><span>${r.players.length}/${r.size}</span></div><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div><div class="player-grid">${ph}</div><br>${free>0?`<button class="btn btn-primary" onclick="openSignup('raid',${r.id})">+ Für Raid anmelden</button>`:'<span class="muted">🔒 Raid ist voll.</span>'}</div></article>`);});}
 
-/* ===== EVENT ===== */
+/* ===== EVENTS ===== */
 function openEventForm(id=null){
- if(!isAdmin){alert("Nur der Admin kann Events erstellen.");return;}
- const e=id===null?null:events.find(x=>x.id===id);if(id!==null&&!e)return;
- openModal(`<h2>🎉 ${e?"Event bearbeiten":"Event erstellen"}</h2>
- <div class="form-group"><label>Eventname *</label><input id="eventName" value="${e?escapeHTML(e.name):""}"></div>
- <div class="form-group"><label>Art</label><input id="eventType" value="${e?escapeHTML(e.type):"Gildenevent"}"></div>
- <div class="form-row"><div class="form-group"><label>Datum *</label><input type="date" id="eventDate" value="${e?.date||""}"></div><div class="form-group"><label>Startzeit *</label><input type="time" id="eventTime" value="${e?.time||"20:00"}"></div></div>
- <div class="form-group"><label>Maximale Teilnehmer *</label><input type="number" id="eventMax" min="1" max="100" value="${e?.max||10}"></div>
- <div class="role-limit-form"><div><label>🛡️ Tanks</label><input type="number" id="eventTank" min="0" value="${e?.tankLimit??2}"></div><div><label>💚 Heiler</label><input type="number" id="eventHeal" min="0" value="${e?.healLimit??3}"></div><div><label>⚔️ DDs</label><input type="number" id="eventDD" min="0" value="${e?.ddLimit??5}"></div></div>
- <div class="form-group"><label>Beschreibung</label><textarea id="eventDescription">${e?escapeHTML(e.description):""}</textarea></div>
- <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="saveEvent(${id===null?"null":id})">💾 Event speichern</button></div>`);
+ if(!isAdmin){alert("Nur der Admin kann Events erstellen.");return;}const e=id===null?null:events.find(x=>x.id===id);if(id!==null&&!e)return;openModal(`<h2>🎉 ${e?"Event bearbeiten":"Event erstellen"}</h2><div class="form-group"><label>Eventname *</label><input id="eventName" value="${e?escapeHTML(e.name):""}"></div><div class="form-group"><label>Art</label><input id="eventType" value="${e?escapeHTML(e.type):"Gildenevent"}"></div><div class="form-row"><div class="form-group"><label>Datum *</label><input type="date" id="eventDate" value="${e?.date||""}"></div><div class="form-group"><label>Startzeit *</label><input type="time" id="eventTime" value="${e?.time||"20:00"}"></div></div><div class="form-group"><label>Maximale Teilnehmer *</label><input type="number" id="eventMax" min="1" max="100" value="${e?.max||10}"></div><div class="role-limit-form"><div><label>🛡️ Tanks</label><input type="number" id="eventTank" min="0" value="${e?.tank_limit??2}"></div><div><label>💚 Heiler</label><input type="number" id="eventHeal" min="0" value="${e?.heal_limit??3}"></div><div><label>⚔️ DDs</label><input type="number" id="eventDD" min="0" value="${e?.dd_limit??5}"></div></div><div class="form-group"><label>Beschreibung</label><textarea id="eventDescription">${e?escapeHTML(e.description):""}</textarea></div><div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="saveEvent(${id===null?"null":id})">💾 Event speichern</button></div>`);
 }
-function saveEvent(id){
- const name=document.getElementById("eventName").value.trim(),type=document.getElementById("eventType").value.trim(),date=document.getElementById("eventDate").value,time=document.getElementById("eventTime").value,max=+document.getElementById("eventMax").value,tankLimit=+document.getElementById("eventTank").value,healLimit=+document.getElementById("eventHeal").value,ddLimit=+document.getElementById("eventDD").value,description=document.getElementById("eventDescription").value.trim();
- if(!name||!date||!time||max<1){alert("Bitte Name, Datum, Uhrzeit und Teilnehmerzahl ausfüllen.");return;}
- if(tankLimit+healLimit+ddLimit>max){alert("Die Rollenlimits dürfen die maximale Teilnehmerzahl nicht überschreiten.");return;}
- if(id===null)events.push({id:Date.now(),name,type:type||"Event",date,time,max,tankLimit,healLimit,ddLimit,description,players:[]});
- else{const e=events.find(x=>x.id===id);if(!e)return;if(e.players.length>max){alert("Maximale Teilnehmerzahl ist kleiner als bereits angemeldete Spieler.");return;}Object.assign(e,{name,type:type||"Event",date,time,max,tankLimit,healLimit,ddLimit,description});}
- saveData();closeModal();renderAll();showToast(id===null?"🎉 Event erstellt.":"🎉 Event aktualisiert.");
+async function saveEvent(id){
+ const payload={name:document.getElementById("eventName").value.trim(),type:document.getElementById("eventType").value.trim()||"Event",date:document.getElementById("eventDate").value,time:document.getElementById("eventTime").value,max:+document.getElementById("eventMax").value,tank_limit:+document.getElementById("eventTank").value,heal_limit:+document.getElementById("eventHeal").value,dd_limit:+document.getElementById("eventDD").value,description:document.getElementById("eventDescription").value.trim()};if(!payload.name||!payload.date||!payload.time||payload.max<1){alert("Bitte Name, Datum, Uhrzeit und Teilnehmerzahl ausfüllen.");return;}if(payload.tank_limit+payload.heal_limit+payload.dd_limit>payload.max){alert("Die Rollenlimits dürfen die maximale Teilnehmerzahl nicht überschreiten.");return;}if(id!==null){const e=events.find(x=>x.id===id);if(e&&e.players.length>payload.max){alert("Maximale Teilnehmerzahl ist kleiner als bereits angemeldete Spieler.");return;}}
+ const q=id===null?supabaseClient.from("events").insert(payload):supabaseClient.from("events").update(payload).eq("id",id);const {error}=await q;if(error){dbError(error);return;}closeModal();await refreshData();showToast(id===null?"🎉 Event erstellt.":"🎉 Event aktualisiert.");
 }
-function deleteEvent(id){if(!isAdmin)return;const e=events.find(x=>x.id===id);if(e&&confirm(`Event "${e.name}" wirklich löschen?`)){events=events.filter(x=>x.id!==id);saveData();renderAll();}}
-function removeEventPlayer(eid,pid){if(!isAdmin)return;const e=events.find(x=>x.id===eid),p=e?.players.find(x=>x.id===pid);if(e&&p&&confirm(`Anmeldung von ${p.player} entfernen?`)){e.players=e.players.filter(x=>x.id!==pid);saveData();renderAll();}}
+async function deleteEvent(id){if(!isAdmin)return;const e=events.find(x=>x.id===id);if(!e||!confirm(`Event "${e.name}" wirklich löschen?`))return;const {error}=await supabaseClient.from("events").delete().eq("id",id);if(error){dbError(error);return;}await refreshData();}
+async function removeEventPlayer(eid,pid){if(!isAdmin)return;if(!confirm("Anmeldung wirklich entfernen?"))return;const {error}=await supabaseClient.from("signups").delete().eq("id",pid);if(error){dbError(error);return;}await refreshData();}
 function renderEvents(){
- const c=document.getElementById("eventContainer");c.innerHTML="";if(!events.length){c.innerHTML='<div class="event-card"><div class="card-body muted">Noch keine Events erstellt.</div></div>';return;}
- events.slice().sort((a,b)=>getStartDate(a)-getStartDate(b)).forEach(e=>{
-  e.players=e.players||[];const tanks=e.players.filter(p=>p.role==="Tank").length,heals=e.players.filter(p=>p.role==="Heiler").length,dds=e.players.filter(p=>p.role==="DD").length,free=Math.max(0,e.max-e.players.length),pct=Math.min(100,e.players.length/e.max*100);
-  let ph=e.players.map(p=>`<div class="player-card"><strong>${escapeHTML(p.player)}</strong><small>⚔️ ${escapeHTML(p.character)}</small><small>${escapeHTML(p.className)} · ${escapeHTML(p.spec)}</small><small>${escapeHTML(p.role)}</small>${isAdmin?`<button class="remove-player" onclick="removeEventPlayer(${e.id},${p.id})">×</button>`:""}</div>`).join("");
-  c.insertAdjacentHTML("beforeend",`<article class="event-card"><div class="card-header"><div><div class="card-title">🎉 ${escapeHTML(e.name)}</div><div class="card-meta">🏷️ ${escapeHTML(e.type)}<br>📅 ${formatDate(e.date)}<br>🕐 ${escapeHTML(e.time)} Uhr</div></div>${isAdmin?`<div><button class="btn btn-secondary btn-small" onclick="openEventForm(${e.id})">✏️ Bearbeiten</button> <button class="btn btn-danger btn-small" onclick="deleteEvent(${e.id})">🗑️ Löschen</button></div>`:""}</div><div class="card-body">${renderCountdown(e)}${e.description?`<p class="card-description">${escapeHTML(e.description)}</p>`:""}<div class="limit-box"><div class="limit-item limit-tank"><strong>${tanks}/${e.tankLimit}</strong>🛡️ Tanks</div><div class="limit-item limit-heal"><strong>${heals}/${e.healLimit}</strong>💚 Heiler</div><div class="limit-item limit-dd"><strong>${dds}/${e.ddLimit}</strong>⚔️ DDs</div></div><div class="progress-label"><span>Teilnehmer</span><span>${e.players.length}/${e.max}</span></div><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div><div class="player-grid">${ph}</div><br>${free>0?`<button class="btn btn-primary" onclick="openSignup('event',${e.id})">+ Für Event anmelden</button>`:'<span class="muted">🔒 Event ist voll.</span>'}</div></article>`);
- });
-}
+ const c=document.getElementById("eventContainer");c.innerHTML="";if(!events.length){c.innerHTML='<div class="event-card"><div class="card-body muted">Noch keine Events erstellt.</div></div>';return;}events.slice().sort((a,b)=>getStartDate(a)-getStartDate(b)).forEach(e=>{e.players=e.players||[];const tanks=e.players.filter(p=>p.role==="Tank").length,heals=e.players.filter(p=>p.role==="Heiler").length,dds=e.players.filter(p=>p.role==="DD").length,free=Math.max(0,e.max-e.players.length),pct=Math.min(100,e.players.length/e.max*100);let ph=e.players.map(p=>`<div class="player-card"><strong>${escapeHTML(p.player)}</strong><small>⚔️ ${escapeHTML(p.character)}</small><small>${escapeHTML(p.class_name)} · ${escapeHTML(p.spec)}</small><small>${escapeHTML(p.role)}</small>${isAdmin?`<button class="remove-player" onclick="removeEventPlayer(${e.id},${p.id})">×</button>`:""}</div>`).join("");c.insertAdjacentHTML("beforeend",`<article class="event-card"><div class="card-header"><div><div class="card-title">🎉 ${escapeHTML(e.name)}</div><div class="card-meta">🏷️ ${escapeHTML(e.type)}<br>📅 ${formatDate(e.date)}<br>🕐 ${escapeHTML(e.time)} Uhr</div></div>${isAdmin?`<div><button class="btn btn-secondary btn-small" onclick="openEventForm(${e.id})">✏️ Bearbeiten</button> <button class="btn btn-danger btn-small" onclick="deleteEvent(${e.id})">🗑️ Löschen</button></div>`:""}</div><div class="card-body">${renderCountdown(e)}${e.description?`<p class="card-description">${escapeHTML(e.description)}</p>`:""}<div class="limit-box"><div class="limit-item limit-tank"><strong>${tanks}/${e.tank_limit}</strong>🛡️ Tanks</div><div class="limit-item limit-heal"><strong>${heals}/${e.heal_limit}</strong>💚 Heiler</div><div class="limit-item limit-dd"><strong>${dds}/${e.dd_limit}</strong>⚔️ DDs</div></div><div class="progress-label"><span>Teilnehmer</span><span>${e.players.length}/${e.max}</span></div><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div><div class="player-grid">${ph}</div><br>${free>0?`<button class="btn btn-primary" onclick="openSignup('event',${e.id})">+ Für Event anmelden</button>`:'<span class="muted">🔒 Event ist voll.</span>'}</div></article>`);});}
 
 /* ===== ANMELDUNG ===== */
-function openSignup(type,id){
- const item=type==="raid"?raids.find(x=>x.id===id):events.find(x=>x.id===id);if(!item)return;
- const classes=Object.keys(wowClasses).map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");
- openModal(`<h2>${type==="raid"?"⚔️ Raid-Anmeldung":"🎉 Event-Anmeldung"}</h2><p class="muted">${escapeHTML(item.name)}</p>
- <div class="form-group"><label>Spielername *</label><input id="signupPlayer" placeholder="Discord-/WoW-Name"></div>
- <div class="form-group"><label>Charaktername *</label><input id="signupCharacter" placeholder="Charakter"></div>
- <div class="form-group"><label>Klasse *</label><select id="signupClass" onchange="updateSpecs()">${classes}</select></div>
- <div class="form-group"><label>Spezialisierung *</label><select id="signupSpec"></select></div>
- <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="saveSignup('${type}',${id})">✅ Anmelden</button></div>`);
- updateSpecs();
-}
-function updateSpecs(){
- const c=document.getElementById("signupClass"),s=document.getElementById("signupSpec");if(!c||!s)return;
- s.innerHTML=wowClasses[c.value].map(([spec,role])=>`<option value="${escapeHTML(spec)}" data-role="${role}">${escapeHTML(spec)} – ${escapeHTML(role)}</option>`).join("");
-}
-function saveSignup(type,id){
- const player=document.getElementById("signupPlayer").value.trim(),character=document.getElementById("signupCharacter").value.trim(),className=document.getElementById("signupClass").value,specEl=document.getElementById("signupSpec"),spec=specEl.value,role=specEl.selectedOptions[0]?.dataset.role;
- if(!player||!character){alert("Bitte Spieler- und Charaktername eingeben.");return;}
- const list=type==="raid"?raids:events,item=list.find(x=>x.id===id);if(!item)return;
- const max=type==="raid"?item.size:item.max;if(item.players.length>=max){alert(type==="raid"?"Der Raid ist voll.":"Das Event ist voll.");return;}
- const roleLimit=role==="Tank"?item.tankLimit:role==="Heiler"?item.healLimit:item.ddLimit,current=item.players.filter(p=>p.role===role).length;
- if(current>=roleLimit){alert(`Für ${role} sind bereits alle Plätze belegt.`);return;}
- if(item.players.some(p=>p.player.toLowerCase()===player.toLowerCase())){alert("Dieser Spieler ist bereits angemeldet.");return;}
- item.players.push({id:Date.now()+Math.random(),player,character,className,spec,role});saveData();closeModal();renderAll();showToast(type==="raid"?"⚔️ Erfolgreich für den Raid angemeldet.":"🎉 Erfolgreich für das Event angemeldet.");
+function openSignup(type,id){const item=type==="raid"?raids.find(x=>x.id===id):events.find(x=>x.id===id);if(!item)return;const classes=Object.keys(wowClasses).map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join("");openModal(`<h2>${type==="raid"?"⚔️ Raid-Anmeldung":"🎉 Event-Anmeldung"}</h2><p class="muted">${escapeHTML(item.name)}</p><div class="form-group"><label>Spielername *</label><input id="signupPlayer" placeholder="Discord-/WoW-Name"></div><div class="form-group"><label>Charaktername *</label><input id="signupCharacter" placeholder="Charakter"></div><div class="form-group"><label>Klasse *</label><select id="signupClass" onchange="updateSpecs()">${classes}</select></div><div class="form-group"><label>Spezialisierung *</label><select id="signupSpec"></select></div><div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button><button class="btn btn-primary" onclick="saveSignup('${type}',${id})">✅ Anmelden</button></div>`);updateSpecs();}
+function updateSpecs(){const c=document.getElementById("signupClass"),s=document.getElementById("signupSpec");if(!c||!s)return;s.innerHTML=wowClasses[c.value].map(([spec,role])=>`<option value="${escapeHTML(spec)}" data-role="${role}">${escapeHTML(spec)} – ${escapeHTML(role)}</option>`).join("");}
+async function saveSignup(type,id){
+ const player=document.getElementById("signupPlayer").value.trim(),character=document.getElementById("signupCharacter").value.trim(),className=document.getElementById("signupClass").value,specEl=document.getElementById("signupSpec"),spec=specEl.value,role=specEl.selectedOptions[0]?.dataset.role;if(!player||!character){alert("Bitte Spieler- und Charaktername eingeben.");return;}
+ const {data,error}=await supabaseClient.rpc("register_signup",{p_item_type:type,p_item_id:id,p_player:player,p_character:character,p_class_name:className,p_spec:spec,p_role:role});if(error){alert("Anmeldung fehlgeschlagen: "+error.message);return;}if(data?.ok===false){alert(data.message||"Anmeldung nicht möglich.");return;}closeModal();await refreshData();showToast(type==="raid"?"⚔️ Erfolgreich für den Raid angemeldet.":"🎉 Erfolgreich für das Event angemeldet.");
 }
 
-/* ===== START ===== */
 function renderAll(){renderNews();renderCalendar();renderRaids();renderEvents();updateAdminStatus();}
-renderAll();
-setInterval(()=>{renderRaids();renderEvents();},1000);
+renderAll();init();setInterval(()=>{renderRaids();renderEvents();},1000);
 </script>
 </body>
 </html>
