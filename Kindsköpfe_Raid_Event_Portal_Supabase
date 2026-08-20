@@ -98,8 +98,8 @@ footer{padding:45px 20px;text-align:center;color:#777;border-top:1px solid var(-
    3. SQL-Datei einmal im Supabase SQL Editor ausführen
    4. Admin-Benutzer in Supabase Auth anlegen
    ========================================================= */
-const SUPABASE_URL = "DEINE_SUPABASE_URL";
-const SUPABASE_PUBLISHABLE_KEY = "DEIN_SUPABASE_PUBLISHABLE_KEY";
+const SUPABASE_URL = "https://kdgpqajnvaenwoqkjgfy.supabase.co/rest/v1/";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_C7-kN2ej0quDa4IjU9AWkA_lUP8ujuJ";
 
 const wowClasses={
  "Todesritter":[["Blut","Tank"],["Frost","DD"],["Unheilig","DD"]],
