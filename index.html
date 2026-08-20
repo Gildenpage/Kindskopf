@@ -4,24 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Kindsköpfe – WoW Gildenportal</title>
+<title>Kindsköpfe – Raid und Event Portal</title>
 
 <style>
+
+/* =========================================================
+   GRUNDLAYOUT
+========================================================= */
+
 :root{
-    --gold:#d7a83e;
-    --gold-light:#f3ca69;
-    --bg:#080c11;
-    --panel:#121a23;
-    --panel2:#19232e;
-    --panel3:#0d131a;
-    --border:#34414d;
-    --text:#eeeeee;
-    --muted:#99a4ae;
-    --green:#3c9a61;
-    --red:#a94141;
-    --blue:#3978ad;
-    --orange:#b97838;
-    --shadow:0 12px 35px #0008;
+    --gold:#d8ad4b;
+    --gold-light:#ffe09a;
+
+    --blue:#3d78a8;
+    --blue-light:#78b9e8;
+
+    --dark:#060b12;
+    --dark2:#0c141e;
+    --panel:#121c27;
+    --panel2:#192735;
+    --panel3:#0b121a;
+
+    --border:#35495b;
+
+    --text:#f0f3f5;
+    --muted:#9daab5;
+
+    --green:#3f9a61;
+    --red:#a94444;
+    --orange:#b87938;
+
+    --shadow:0 15px 45px rgba(0,0,0,.65);
 }
 
 *{
@@ -35,124 +48,448 @@ html{
 body{
     margin:0;
     min-height:100vh;
+
     color:var(--text);
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
     background:
-        radial-gradient(circle at top,#31475b 0,#101923 35%,#06090d 80%);
-    font-family:Arial,Helvetica,sans-serif;
+        radial-gradient(
+            circle at 50% 0%,
+            #263e52 0,
+            #0c141e 38%,
+            #04070b 85%
+        );
 }
 
-button,
-input,
-select,
-textarea{
-    font:inherit;
-}
 
-button{
-    cursor:pointer;
-}
+/* =========================================================
+   HEADER
+========================================================= */
 
-header{
-    min-height:340px;
+.hero{
+    position:relative;
+
+    min-height:480px;
+
     display:flex;
     align-items:center;
     justify-content:center;
-    text-align:center;
-    padding:50px 20px;
 
-    background:
-        linear-gradient(#0009,#000b),
-        radial-gradient(circle,#536e85,#080c12 72%);
+    overflow:hidden;
 
     border-bottom:2px solid var(--gold);
+
+    background:
+        linear-gradient(
+            rgba(2,8,15,.30),
+            rgba(2,7,13,.82)
+        ),
+        radial-gradient(
+            ellipse at 50% 35%,
+            rgba(91,154,204,.55),
+            transparent 55%
+        ),
+        linear-gradient(
+            135deg,
+            #07101a 0%,
+            #1b3b58 48%,
+            #07101a 100%
+        );
 }
 
-.logo{
-    font-size:clamp(48px,9vw,100px);
-    font-weight:900;
+
+/* Berge / Landschaft */
+
+.hero::before{
+    content:"";
+
+    position:absolute;
+    left:-10%;
+    right:-10%;
+    bottom:-100px;
+
+    height:270px;
+
+    background:
+        linear-gradient(
+            135deg,
+            transparent 35%,
+            #101e2c 36%,
+            #101e2c 52%,
+            transparent 53%
+        ),
+        linear-gradient(
+            45deg,
+            transparent 38%,
+            #0a1520 39%,
+            #0a1520 62%,
+            transparent 63%
+        );
+
+    opacity:.95;
+
+    transform:scale(1.15);
+}
+
+
+/* Himmel */
+
+.hero::after{
+    content:"";
+
+    position:absolute;
+
+    width:700px;
+    height:700px;
+
+    left:50%;
+    top:-420px;
+
+    transform:translateX(-50%);
+
+    border-radius:50%;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(120,190,240,.45) 0%,
+            rgba(65,126,170,.2) 30%,
+            transparent 70%
+        );
+
+    box-shadow:
+        0 0 100px rgba(100,180,240,.15);
+}
+
+
+/* Allianz-inspirierte Banner */
+
+.alliance-banner{
+    position:absolute;
+
+    left:7%;
+    top:50%;
+
+    width:160px;
+    height:260px;
+
+    transform:
+        translateY(-50%)
+        rotate(-3deg);
+
+    background:
+        linear-gradient(
+            135deg,
+            #173d61,
+            #326f9d,
+            #102c49
+        );
+
+    border:3px solid var(--gold);
+
+    clip-path:
+        polygon(
+            0 0,
+            100% 0,
+            100% 82%,
+            50% 100%,
+            0 82%
+        );
+
+    box-shadow:
+        0 0 25px #000,
+        inset 0 0 35px rgba(255,255,255,.08);
+
+    z-index:2;
+}
+
+.alliance-banner::before{
+    content:"✦";
+
+    position:absolute;
+
+    inset:0;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:#dcefff;
+
+    font-size:90px;
+
+    text-shadow:
+        0 0 15px #9ddcff,
+        0 5px 15px #000;
+}
+
+
+/* Rechtes Banner */
+
+.alliance-banner.right{
+    left:auto;
+    right:7%;
+
+    transform:
+        translateY(-50%)
+        rotate(3deg);
+}
+
+
+/* Header Inhalt */
+
+.hero-content{
+    position:relative;
+
+    z-index:5;
+
+    text-align:center;
+
+    padding:30px 20px;
+}
+
+
+/* kleiner Allianz-Text */
+
+.hero-kicker{
+    margin-bottom:18px;
+
+    color:var(--blue-light);
+
+    font-size:14px;
+    font-weight:bold;
+
     letter-spacing:5px;
-    color:var(--gold);
-    text-shadow:0 5px 15px #000,0 0 35px #000;
-}
 
-header p{
-    font-size:21px;
-    margin:8px 0;
-}
-
-header small{
-    color:var(--gold-light);
     text-transform:uppercase;
-    letter-spacing:3px;
+
+    text-shadow:
+        0 2px 5px #000;
 }
+
+
+/* Haupttitel */
+
+.hero-title{
+
+    margin:0;
+
+    color:#f4f6f7;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size:
+        clamp(52px,9vw,108px);
+
+    line-height:1;
+
+    font-weight:900;
+
+    letter-spacing:4px;
+
+    text-transform:uppercase;
+
+    text-shadow:
+        0 4px 0 #17212c,
+        0 7px 18px #000,
+        0 0 35px rgba(103,185,240,.35);
+}
+
+
+/* Goldlinie */
+
+.hero-line{
+
+    width:min(600px,80%);
+
+    height:2px;
+
+    margin:22px auto;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            var(--gold),
+            var(--gold-light),
+            var(--gold),
+            transparent
+        );
+
+    box-shadow:
+        0 0 12px rgba(220,180,70,.5);
+}
+
+
+/* Untertitel */
+
+.hero-subtitle{
+
+    margin:0;
+
+    color:var(--gold-light);
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size:
+        clamp(20px,3vw,34px);
+
+    font-weight:bold;
+
+    letter-spacing:5px;
+
+    text-transform:uppercase;
+
+    text-shadow:
+        0 3px 10px #000;
+}
+
+
+/* Thema */
+
+.hero-description{
+
+    margin-top:20px;
+
+    color:#d4e5f2;
+
+    font-size:15px;
+
+    letter-spacing:2px;
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
 
 nav{
+
     position:sticky;
     top:0;
+
     z-index:100;
 
     display:flex;
     justify-content:center;
     flex-wrap:wrap;
+
     gap:7px;
 
     padding:10px;
 
-    background:#070b10ee;
+    background:
+        rgba(5,10,16,.94);
+
     backdrop-filter:blur(10px);
 
     border-bottom:1px solid var(--border);
 }
 
 nav button{
-    border:0;
+
+    border:1px solid #354656;
+
     border-radius:5px;
-    padding:11px 16px;
-    background:#202b36;
+
+    padding:11px 17px;
+
     color:#eee;
+
+    background:#17232f;
+
+    transition:.2s;
 }
 
 nav button:hover{
-    background:var(--gold);
+
     color:#111;
+
+    background:var(--gold);
+
+    border-color:var(--gold);
 }
 
+
+/* =========================================================
+   MAIN
+========================================================= */
+
 main{
+
     width:min(1280px,94%);
+
     margin:40px auto 80px;
 }
 
 section{
+
     margin-bottom:75px;
 }
 
 .section-title{
+
     display:flex;
-    justify-content:space-between;
+
     align-items:center;
+
+    justify-content:space-between;
+
     gap:15px;
 
     margin-bottom:20px;
+
     padding-bottom:12px;
 
     border-bottom:1px solid var(--border);
 }
 
 .section-title h2{
+
     margin:0;
+
     color:var(--gold);
+
+    font-family:Georgia,serif;
 }
 
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
 .btn{
+
     border:0;
+
     border-radius:5px;
+
     padding:10px 15px;
+
     font-weight:bold;
+
+    transition:.2s;
+}
+
+.btn:hover{
+    transform:translateY(-1px);
 }
 
 .btn-primary{
-    background:var(--gold);
+
     color:#111;
+
+    background:var(--gold);
 }
 
 .btn-primary:hover{
@@ -160,141 +497,205 @@ section{
 }
 
 .btn-secondary{
-    background:#36434f;
-    color:white;
+
+    color:#fff;
+
+    background:#364653;
 }
 
 .btn-green{
-    background:var(--green);
+
     color:white;
+
+    background:var(--green);
 }
 
 .btn-danger{
-    background:var(--red);
+
     color:white;
+
+    background:var(--red);
 }
 
 .btn-small{
+
     padding:7px 10px;
-    font-size:13px;
+
+    font-size:12px;
 }
 
-.muted{
-    color:var(--muted);
-    font-size:13px;
-}
 
-/* NEWS */
+/* =========================================================
+   NEWS
+========================================================= */
 
 .news-grid{
+
     display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(280px,1fr)
+        );
+
     gap:18px;
 }
 
 .news-card{
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-left:4px solid var(--gold);
-    border-radius:7px;
+
     padding:20px;
+
+    background:var(--panel);
+
+    border:1px solid var(--border);
+
+    border-left:4px solid var(--gold);
+
+    border-radius:7px;
+
     box-shadow:var(--shadow);
 }
 
 .news-card h3{
-    color:var(--gold);
+
     margin-top:0;
+
+    color:var(--gold);
 }
 
 .news-date{
-    color:var(--muted);
-    font-size:13px;
+
     margin-bottom:12px;
+
+    color:var(--muted);
+
+    font-size:13px;
 }
 
 .news-text{
+
     white-space:pre-wrap;
+
     line-height:1.6;
 }
 
-/* CALENDAR */
+
+/* =========================================================
+   KALENDER
+========================================================= */
 
 .calendar{
+
     overflow:hidden;
+
     background:var(--panel);
+
     border:1px solid var(--border);
+
     border-radius:8px;
+
     box-shadow:var(--shadow);
 }
 
 .calendar-toolbar{
+
     display:flex;
+
     align-items:center;
+
     justify-content:space-between;
+
     padding:15px;
+
     background:var(--panel2);
 }
 
 .calendar-toolbar h3{
+
     margin:0;
+
     color:var(--gold);
+
     text-transform:capitalize;
 }
 
 .calendar-toolbar button{
+
     border:0;
+
     border-radius:5px;
+
     padding:8px 15px;
+
     color:white;
-    background:#36434f;
+
+    background:#364653;
 }
 
 .weekdays,
 .calendar-grid{
+
     display:grid;
-    grid-template-columns:repeat(7,1fr);
+
+    grid-template-columns:
+        repeat(7,1fr);
 }
 
 .weekdays div{
+
     padding:12px 5px;
+
     text-align:center;
+
     font-weight:bold;
+
     color:var(--gold);
-    background:#0a0f15;
+
+    background:#080e14;
+
     border-right:1px solid var(--border);
 }
 
 .calendar-day{
+
     min-height:145px;
+
     padding:7px;
 
     border-top:1px solid var(--border);
+
     border-right:1px solid var(--border);
 }
 
 .calendar-day.today{
-    box-shadow:inset 0 0 0 2px var(--gold);
+
+    box-shadow:
+        inset 0 0 0 2px var(--gold);
 }
 
 .day-number{
+
     font-weight:bold;
+
     margin-bottom:5px;
 }
 
 .calendar-item{
+
     margin-top:5px;
+
     padding:6px;
 
     border-radius:4px;
 
     font-size:10px;
-    line-height:1.3;
 
-    overflow:hidden;
+    line-height:1.3;
 }
 
 .calendar-raid{
-    background:#733e3e;
+    background:#713e3e;
 }
 
 .calendar-event{
@@ -302,122 +703,183 @@ section{
 }
 
 .calendar-info{
-    background:#3a6590;
+    background:#39668f;
 }
 
 .calendar-other{
-    background:#68533a;
+    background:#695339;
 }
 
-.calendar-admin-tools{
-    margin-top:8px;
-}
 
-/* RAID / EVENT */
+/* =========================================================
+   CARDS
+========================================================= */
 
 .raid-card,
 .event-card{
+
     overflow:hidden;
+
     margin-bottom:25px;
 
     background:var(--panel);
+
     border:1px solid var(--border);
+
     border-radius:8px;
 
     box-shadow:var(--shadow);
 }
 
 .card-header{
+
     display:flex;
+
     justify-content:space-between;
+
     align-items:flex-start;
+
     gap:20px;
 
     padding:20px;
 
-    background:var(--panel2);
+    background:
+        linear-gradient(
+            135deg,
+            #1a2b3a,
+            #111b25
+        );
+
     border-bottom:1px solid var(--border);
 }
 
 .card-title{
+
     color:var(--gold);
+
+    font-family:Georgia,serif;
+
     font-size:25px;
+
     font-weight:bold;
 }
 
 .card-meta{
+
     margin-top:7px;
+
     color:#aaa;
+
     line-height:1.8;
 }
 
 .card-body{
+
     padding:20px;
 }
 
 .card-description{
+
     white-space:pre-wrap;
+
     line-height:1.6;
 }
 
-/* COUNTDOWN */
+
+/* =========================================================
+   COUNTDOWN
+========================================================= */
 
 .countdown{
+
     margin:18px 0;
+
     padding:18px;
 
     text-align:center;
 
-    background:linear-gradient(135deg,#241f13,#111920);
+    background:
+        linear-gradient(
+            135deg,
+            #252015,
+            #101920
+        );
 
     border:1px solid #806229;
+
     border-radius:8px;
 }
 
 .countdown-title{
-    color:var(--gold);
-    font-size:12px;
-    text-transform:uppercase;
-    letter-spacing:2px;
+
     margin-bottom:8px;
+
+    color:var(--gold);
+
+    font-size:12px;
+
+    text-transform:uppercase;
+
+    letter-spacing:2px;
 }
 
 .countdown-value{
-    font-size:clamp(22px,4vw,40px);
+
+    font-size:
+        clamp(22px,4vw,40px);
+
     font-weight:bold;
 }
 
 .countdown-value span{
+
     color:var(--gold-light);
 }
 
 .countdown-started{
+
     color:#ed5d5d;
 }
 
-/* ROLE BOXES */
+
+/* =========================================================
+   ROLLEN
+========================================================= */
 
 .role-grid{
+
     display:grid;
-    grid-template-columns:repeat(4,1fr);
+
+    grid-template-columns:
+        repeat(4,1fr);
+
     gap:10px;
+
     margin:20px 0;
 }
 
 .role-box{
+
     padding:13px;
+
     text-align:center;
 
     background:var(--panel3);
+
     border:1px solid var(--border);
+
     border-radius:6px;
 }
 
 .role-number{
+
     display:block;
-    font-size:27px;
-    font-weight:bold;
+
     margin-bottom:4px;
+
+    font-size:27px;
+
+    font-weight:bold;
 }
 
 .role-tank .role-number{
@@ -436,72 +898,165 @@ section{
     color:#65a8df;
 }
 
-/* PROGRESS */
+
+/* =========================================================
+   RAID ROLLENANFORDERUNG
+========================================================= */
+
+.raid-requirements{
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(3,1fr);
+
+    gap:10px;
+
+    margin:20px 0;
+}
+
+.requirement{
+
+    padding:15px;
+
+    text-align:center;
+
+    background:#0c141c;
+
+    border:1px solid var(--border);
+
+    border-radius:6px;
+}
+
+.requirement strong{
+
+    display:block;
+
+    margin-bottom:4px;
+
+    font-size:25px;
+}
+
+.requirement.tank strong{
+    color:#e1a45e;
+}
+
+.requirement.heal strong{
+    color:#55d394;
+}
+
+.requirement.dd strong{
+    color:#df6565;
+}
+
+
+/* =========================================================
+   PROGRESS
+========================================================= */
 
 .progress-label{
+
     display:flex;
+
     justify-content:space-between;
+
     margin-bottom:6px;
+
     color:#aaa;
 }
 
 .progress{
+
     height:13px;
+
     overflow:hidden;
+
     margin-bottom:20px;
 
     background:#070a0e;
+
     border-radius:20px;
 }
 
 .progress-bar{
+
     height:100%;
-    background:var(--gold);
+
+    background:
+        linear-gradient(
+            90deg,
+            #9a7021,
+            var(--gold-light)
+        );
+
     transition:width .3s;
 }
 
-/* PLAYERS */
+
+/* =========================================================
+   SPIELER
+========================================================= */
 
 .player-grid{
+
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(235px,1fr));
+
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(235px,1fr)
+        );
+
     gap:8px;
 }
 
 .player-card{
+
     position:relative;
 
     padding:13px;
 
     background:#10171e;
+
     border:1px solid var(--border);
+
     border-radius:6px;
 }
 
 .player-card strong{
+
     display:block;
+
     margin-bottom:5px;
 }
 
 .player-card small{
+
     display:block;
+
     margin-top:4px;
+
     color:#aaa;
 }
 
 .empty-slot{
+
     color:#68737e;
 }
 
 .remove-player{
+
     position:absolute;
+
     top:5px;
     right:5px;
 
     border:0;
+
     background:none;
 
     color:#999;
+
     font-size:20px;
 }
 
@@ -509,25 +1064,40 @@ section{
     color:#ff6464;
 }
 
-/* EVENT SPECIAL */
+
+/* =========================================================
+   EVENT ROLLENLIMITS
+========================================================= */
 
 .limit-box{
+
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+
+    grid-template-columns:
+        repeat(3,1fr);
+
     gap:10px;
+
     margin:20px 0;
 }
 
 .limit-item{
+
     padding:13px;
+
     text-align:center;
+
     background:#0d131a;
+
     border:1px solid var(--border);
+
     border-radius:6px;
 }
 
 .limit-item strong{
+
     display:block;
+
     font-size:23px;
 }
 
@@ -543,15 +1113,23 @@ section{
     color:#df6565;
 }
 
-/* MODAL */
+
+/* =========================================================
+   MODAL
+========================================================= */
 
 .modal{
+
     position:fixed;
+
     inset:0;
+
     z-index:1000;
 
     display:none;
+
     align-items:center;
+
     justify-content:center;
 
     padding:20px;
@@ -564,8 +1142,11 @@ section{
 }
 
 .modal-box{
+
     width:min(700px,100%);
+
     max-height:93vh;
+
     overflow:auto;
 
     position:relative;
@@ -573,25 +1154,36 @@ section{
     padding:25px;
 
     background:#17212b;
+
     border:1px solid #56636f;
+
     border-top:4px solid var(--gold);
+
     border-radius:8px;
 }
 
 .modal-box h2{
-    color:var(--gold);
+
     margin-top:0;
+
+    color:var(--gold);
+
+    font-family:Georgia,serif;
 }
 
 .close-modal{
+
     position:absolute;
+
     top:6px;
     right:10px;
 
     border:0;
+
     background:none;
 
     color:#aaa;
+
     font-size:28px;
 }
 
@@ -600,72 +1192,114 @@ section{
 }
 
 .form-group label{
+
     display:block;
-    color:#bbb;
+
     margin-bottom:6px;
+
+    color:#bbb;
 }
 
 input,
 select,
 textarea{
+
     width:100%;
+
     padding:11px;
 
     color:white;
+
     background:#0a1016;
 
     border:1px solid #414d59;
+
     border-radius:5px;
+
     outline:none;
 }
 
 input:focus,
 select:focus,
 textarea:focus{
+
     border-color:var(--gold);
 }
 
 textarea{
+
     min-height:100px;
+
     resize:vertical;
 }
 
 .form-row{
+
     display:grid;
-    grid-template-columns:1fr 1fr;
+
+    grid-template-columns:
+        1fr 1fr;
+
     gap:12px;
 }
 
 .role-limit-form{
+
     display:grid;
-    grid-template-columns:repeat(3,1fr);
+
+    grid-template-columns:
+        repeat(3,1fr);
+
     gap:10px;
 }
 
 .role-limit-form div{
+
     padding:10px;
+
     background:#0d131a;
+
     border:1px solid var(--border);
+
     border-radius:5px;
 }
 
 .role-limit-form label{
+
     display:block;
+
     margin-bottom:5px;
 }
 
 .modal-actions{
+
     display:flex;
+
     justify-content:flex-end;
+
     flex-wrap:wrap;
+
     gap:8px;
+
     margin-top:20px;
 }
 
-/* ADMIN */
+.muted{
+
+    color:var(--muted);
+
+    font-size:13px;
+}
+
+
+/* =========================================================
+   ADMIN
+========================================================= */
 
 .admin-status{
+
     position:fixed;
+
     right:15px;
     bottom:15px;
 
@@ -676,11 +1310,13 @@ textarea{
     padding:10px 14px;
 
     color:white;
+
     background:#2e783f;
 
     border-radius:5px;
 
     font-size:13px;
+
     font-weight:bold;
 }
 
@@ -688,10 +1324,15 @@ textarea{
     display:block;
 }
 
-/* TOAST */
+
+/* =========================================================
+   TOAST
+========================================================= */
 
 .toast{
+
     position:fixed;
+
     left:50%;
     bottom:25px;
 
@@ -700,14 +1341,18 @@ textarea{
     padding:13px 20px;
 
     color:white;
+
     background:#222c36;
 
     border:1px solid var(--gold);
+
     border-radius:6px;
 
     opacity:0;
 
-    transform:translateX(-50%) translateY(30px);
+    transform:
+        translateX(-50%)
+        translateY(30px);
 
     pointer-events:none;
 
@@ -715,14 +1360,27 @@ textarea{
 }
 
 .toast.show{
+
     opacity:1;
-    transform:translateX(-50%) translateY(0);
+
+    transform:
+        translateX(-50%)
+        translateY(0);
 }
 
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
 footer{
+
     padding:45px 20px;
+
     text-align:center;
+
     color:#777;
+
     border-top:1px solid var(--border);
 }
 
@@ -730,12 +1388,27 @@ footer strong{
     color:var(--gold);
 }
 
-/* MOBILE */
 
-@media(max-width:700px){
+/* =========================================================
+   MOBILE
+========================================================= */
 
-    .logo{
-        letter-spacing:1px;
+@media(max-width:800px){
+
+    .alliance-banner{
+        display:none;
+    }
+
+    .hero{
+        min-height:390px;
+    }
+
+    .hero-title{
+        letter-spacing:2px;
+    }
+
+    .hero-subtitle{
+        letter-spacing:2px;
     }
 
     .section-title{
@@ -751,6 +1424,7 @@ footer strong{
         grid-template-columns:1fr 1fr;
     }
 
+    .raid-requirements,
     .limit-box,
     .role-limit-form,
     .form-row{
@@ -771,31 +1445,57 @@ footer strong{
     }
 
 }
+
 </style>
 </head>
 
+
 <body>
 
-<header>
 
-    <div>
+<!-- =========================================================
+     HEADER
+========================================================= -->
 
-        <div class="logo">
-            KINDSKÖPFE
+<header class="hero">
+
+    <div class="alliance-banner"></div>
+
+    <div class="alliance-banner right"></div>
+
+
+    <div class="hero-content">
+
+        <div class="hero-kicker">
+            Allianz · Gilde · Raids · Zusammenhalt
         </div>
 
-        <p>
-            World of Warcraft · Gildenportal
-        </p>
 
-        <small>
-            Gemeinsam spielen · gemeinsam lachen · gemeinsam raiden
-        </small>
+        <h1 class="hero-title">
+            Kindsköpfe
+        </h1>
+
+
+        <div class="hero-line"></div>
+
+
+        <h2 class="hero-subtitle">
+            Raid und Event Portal
+        </h2>
+
+
+        <p class="hero-description">
+            Gemeinsam raiden · gemeinsam erleben · gemeinsam Spaß haben
+        </p>
 
     </div>
 
 </header>
 
+
+<!-- =========================================================
+     NAVIGATION
+========================================================= -->
 
 <nav>
 
@@ -824,9 +1524,10 @@ footer strong{
 
 <main>
 
-<!-- =====================================================
+
+<!-- =========================================================
      NEWS
-===================================================== -->
+========================================================= -->
 
 <section id="news">
 
@@ -854,9 +1555,9 @@ footer strong{
 </section>
 
 
-<!-- =====================================================
+<!-- =========================================================
      KALENDER
-===================================================== -->
+========================================================= -->
 
 <section id="calendar">
 
@@ -917,9 +1618,9 @@ footer strong{
 </section>
 
 
-<!-- =====================================================
+<!-- =========================================================
      RAIDPLANER
-===================================================== -->
+========================================================= -->
 
 <section id="raids">
 
@@ -944,9 +1645,9 @@ footer strong{
 </section>
 
 
-<!-- =====================================================
+<!-- =========================================================
      EVENTPLANER
-===================================================== -->
+========================================================= -->
 
 <section id="events">
 
@@ -979,7 +1680,7 @@ footer strong{
 
     <br><br>
 
-    World of Warcraft Gildenportal
+    Raid und Event Portal
 
 </footer>
 
@@ -999,7 +1700,9 @@ footer strong{
 </div>
 
 
-<!-- MODAL -->
+<!-- =========================================================
+     MODAL
+========================================================= -->
 
 <div
     id="modal"
@@ -1024,23 +1727,27 @@ footer strong{
 
 <script>
 
-/* =====================================================
+/* =========================================================
    ADMIN
-===================================================== */
+========================================================= */
 
-const ADMIN_USER = "admin";
-const ADMIN_PASSWORD = "Kindsköpfe2026!";
+const ADMIN_USER =
+    "admin";
 
-let isAdmin = false;
+const ADMIN_PASSWORD =
+    "Kindsköpfe2026!";
 
-let calendarDate = new Date();
+let isAdmin=false;
+
+let calendarDate=
+    new Date();
 
 
-/* =====================================================
-   WOW MOP CLASSIC
-===================================================== */
+/* =========================================================
+   WOW KLASSEN / SPECS
+========================================================= */
 
-const wowClasses = {
+const wowClasses={
 
     "Todesritter":[
         ["Blut","Tank"],
@@ -1112,20 +1819,22 @@ const wowClasses = {
 };
 
 
-/* =====================================================
-   DATA
-===================================================== */
+/* =========================================================
+   DATEN
+========================================================= */
 
 function loadData(){
 
-    const saved =
-        localStorage.getItem("kindskopfeV3");
+    try{
 
-    if(saved){
+        const saved=
+            localStorage.getItem(
+                "kindskopfePortalV4"
+            );
 
-        try{
+        if(saved){
 
-            const d =
+            const d=
                 JSON.parse(saved);
 
             return {
@@ -1143,32 +1852,36 @@ function loadData(){
                     : [],
 
                 calendarEntries:
-                    Array.isArray(d.calendarEntries)
+                    Array.isArray(
+                        d.calendarEntries
+                    )
                     ? d.calendarEntries
                     : []
 
             };
 
-        }catch(e){
-
-            console.error(e);
-
         }
+
+    }catch(error){
+
+        console.error(error);
 
     }
 
 
-    return {
+    return{
 
         news:[
-
             {
                 id:Date.now(),
-                title:"Willkommen bei den Kindsköpfen!",
-                text:"Willkommen auf unserem neuen Gildenportal.",
-                date:new Date().toLocaleDateString("de-DE")
+                title:
+                    "Willkommen bei den Kindsköpfen!",
+                text:
+                    "Willkommen auf unserem neuen Raid- und Event-Portal.",
+                date:
+                    new Date()
+                    .toLocaleDateString("de-DE")
             }
-
         ],
 
         raids:[],
@@ -1182,36 +1895,49 @@ function loadData(){
 }
 
 
-let data = loadData();
+let data=
+    loadData();
 
-let news = data.news;
-let raids = data.raids;
-let events = data.events;
-let calendarEntries = data.calendarEntries;
+let news=
+    data.news;
+
+let raids=
+    data.raids;
+
+let events=
+    data.events;
+
+let calendarEntries=
+    data.calendarEntries;
 
 
 function saveData(){
 
     localStorage.setItem(
-        "kindskopfeV3",
+
+        "kindskopfePortalV4",
+
         JSON.stringify({
+
             news,
             raids,
             events,
             calendarEntries
+
         })
+
     );
 
 }
 
 
-/* =====================================================
-   HELPERS
-===================================================== */
+/* =========================================================
+   HILFSFUNKTIONEN
+========================================================= */
 
 function escapeHTML(value){
 
-    return String(value ?? "")
+    return String(value??"")
         .replace(/&/g,"&amp;")
         .replace(/</g,"&lt;")
         .replace(/>/g,"&gt;")
@@ -1223,16 +1949,17 @@ function escapeHTML(value){
 
 function formatDate(date){
 
-    return new Date(`${date}T12:00:00`)
-        .toLocaleDateString(
-            "de-DE",
-            {
-                weekday:"long",
-                day:"2-digit",
-                month:"2-digit",
-                year:"numeric"
-            }
-        );
+    return new Date(
+        `${date}T12:00:00`
+    ).toLocaleDateString(
+        "de-DE",
+        {
+            weekday:"long",
+            day:"2-digit",
+            month:"2-digit",
+            year:"numeric"
+        }
+    );
 
 }
 
@@ -1251,11 +1978,15 @@ function scrollToSection(id){
 function openModal(html){
 
     document
-        .getElementById("modalContent")
+        .getElementById(
+            "modalContent"
+        )
         .innerHTML=html;
 
     document
-        .getElementById("modal")
+        .getElementById(
+            "modal"
+        )
         .classList.add("active");
 
 }
@@ -1264,7 +1995,9 @@ function openModal(html){
 function closeModal(){
 
     document
-        .getElementById("modal")
+        .getElementById(
+            "modal"
+        )
         .classList.remove("active");
 
 }
@@ -1272,16 +2005,23 @@ function closeModal(){
 
 function showToast(message){
 
-    const toast =
-        document.getElementById("toast");
+    const toast=
+        document.getElementById(
+            "toast"
+        );
 
-    toast.textContent=message;
+    toast.textContent=
+        message;
 
-    toast.classList.add("show");
+    toast.classList.add(
+        "show"
+    );
 
     setTimeout(
         ()=>{
-            toast.classList.remove("show");
+            toast.classList.remove(
+                "show"
+            );
         },
         2500
     );
@@ -1289,14 +2029,16 @@ function showToast(message){
 }
 
 
-/* =====================================================
+/* =========================================================
    ADMIN
-===================================================== */
+========================================================= */
 
 function updateAdminStatus(){
 
     document
-        .getElementById("adminStatus")
+        .getElementById(
+            "adminStatus"
+        )
         .classList.toggle(
             "active",
             isAdmin
@@ -1337,11 +2079,9 @@ function openAdminLogin(){
             </label>
 
             <input
-                id="adminUser"
-                autocomplete="username">
+                id="adminUser">
 
         </div>
-
 
         <div class="form-group">
 
@@ -1351,11 +2091,9 @@ function openAdminLogin(){
 
             <input
                 type="password"
-                id="adminPassword"
-                autocomplete="current-password">
+                id="adminPassword">
 
         </div>
-
 
         <div class="modal-actions">
 
@@ -1384,11 +2122,15 @@ function openAdminLogin(){
 
 function loginAdmin(){
 
-    const user =
-        document.getElementById("adminUser").value;
+    const user=
+        document.getElementById(
+            "adminUser"
+        ).value;
 
-    const password =
-        document.getElementById("adminPassword").value;
+    const password=
+        document.getElementById(
+            "adminPassword"
+        ).value;
 
 
     if(
@@ -1411,7 +2153,7 @@ function loginAdmin(){
     }else{
 
         alert(
-            "Benutzername oder Passwort ist falsch."
+            "Benutzername oder Passwort falsch."
         );
 
     }
@@ -1419,9 +2161,9 @@ function loginAdmin(){
 }
 
 
-/* =====================================================
+/* =========================================================
    NEWS
-===================================================== */
+========================================================= */
 
 function openNewsForm(){
 
@@ -1445,28 +2187,24 @@ function openNewsForm(){
         <div class="form-group">
 
             <label>
-                Überschrift *
+                Überschrift
             </label>
 
             <input
-                id="newsTitle"
-                placeholder="Überschrift">
+                id="newsTitle">
 
         </div>
-
 
         <div class="form-group">
 
             <label>
-                Nachricht *
+                Nachricht
             </label>
 
             <textarea
-                id="newsText"
-                placeholder="Nachricht..."></textarea>
+                id="newsText"></textarea>
 
         </div>
-
 
         <div class="modal-actions">
 
@@ -1482,7 +2220,7 @@ function openNewsForm(){
                 class="btn btn-primary"
                 onclick="saveNews()">
 
-                📰 Veröffentlichen
+                Veröffentlichen
 
             </button>
 
@@ -1495,22 +2233,21 @@ function openNewsForm(){
 
 function saveNews(){
 
-    if(!isAdmin) return;
+    const title=
+        document.getElementById(
+            "newsTitle"
+        ).value.trim();
+
+    const text=
+        document.getElementById(
+            "newsText"
+        ).value.trim();
 
 
-    const title =
-        document.getElementById("newsTitle")
-        .value.trim();
-
-    const text =
-        document.getElementById("newsText")
-        .value.trim();
-
-
-    if(!title || !text){
+    if(!title||!text){
 
         alert(
-            "Bitte alle Pflichtfelder ausfüllen."
+            "Bitte alle Felder ausfüllen."
         );
 
         return;
@@ -1521,10 +2258,16 @@ function saveNews(){
     news.unshift({
 
         id:Date.now(),
+
         title,
+
         text,
-        date:new Date()
-            .toLocaleDateString("de-DE")
+
+        date:
+            new Date()
+            .toLocaleDateString(
+                "de-DE"
+            )
 
     });
 
@@ -1544,8 +2287,10 @@ function saveNews(){
 
 function renderNews(){
 
-    const container =
-        document.getElementById("newsContainer");
+    const container=
+        document.getElementById(
+            "newsContainer"
+        );
 
     container.innerHTML="";
 
@@ -1553,11 +2298,11 @@ function renderNews(){
     if(news.length===0){
 
         container.innerHTML=`
+
             <div class="news-card">
-                <span class="muted">
-                    Noch keine News vorhanden.
-                </span>
+                Noch keine News vorhanden.
             </div>
+
         `;
 
         return;
@@ -1588,6 +2333,7 @@ function renderNews(){
                     ?
                     `
                     <br>
+
                     <button
                         class="btn btn-danger btn-small"
                         onclick="deleteNews(${item.id})">
@@ -1596,8 +2342,7 @@ function renderNews(){
 
                     </button>
                     `
-                    :
-                    ""
+                    :""
                 }
 
             </article>
@@ -1611,18 +2356,20 @@ function renderNews(){
 
 function deleteNews(id){
 
-    if(!isAdmin) return;
+    if(!isAdmin)return;
 
 
     if(
         !confirm(
-            "Diese News wirklich löschen?"
+            "News wirklich löschen?"
         )
-    ) return;
+    )return;
 
 
     news=
-        news.filter(n=>n.id!==id);
+        news.filter(
+            n=>n.id!==id
+        );
 
     saveData();
 
@@ -1631,11 +2378,11 @@ function deleteNews(id){
 }
 
 
-/* =====================================================
-   KALENDER EINTRAG
-===================================================== */
+/* =========================================================
+   KALENDER
+========================================================= */
 
-function openCalendarEntryForm(entryId=null){
+function openCalendarEntryForm(id=null){
 
     if(!isAdmin){
 
@@ -1648,10 +2395,14 @@ function openCalendarEntryForm(entryId=null){
     }
 
 
-    const entry =
-        entryId!==null
-        ? calendarEntries.find(e=>e.id===entryId)
-        : null;
+    const entry=
+        id!==null
+        ?
+        calendarEntries.find(
+            e=>e.id===id
+        )
+        :
+        null;
 
 
     openModal(`
@@ -1659,24 +2410,23 @@ function openCalendarEntryForm(entryId=null){
         <h2>
             📅
             ${entry
-                ? "Kalendereintrag bearbeiten"
-                : "Kalendereintrag erstellen"}
+                ?
+                "Kalendereintrag bearbeiten"
+                :
+                "Kalendereintrag erstellen"}
         </h2>
-
 
         <div class="form-group">
 
             <label>
-                Titel *
+                Titel
             </label>
 
             <input
                 id="calTitle"
-                value="${entry ? escapeHTML(entry.title) : ""}"
-                placeholder="z.B. Gildenbesprechung">
+                value="${entry?escapeHTML(entry.title):""}">
 
         </div>
-
 
         <div class="form-group">
 
@@ -1710,22 +2460,20 @@ function openCalendarEntryForm(entryId=null){
 
         </div>
 
-
         <div class="form-row">
 
             <div class="form-group">
 
                 <label>
-                    Datum *
+                    Datum
                 </label>
 
                 <input
                     type="date"
                     id="calDate"
-                    value="${entry ? entry.date : ""}">
+                    value="${entry?entry.date:""}">
 
             </div>
-
 
             <div class="form-group">
 
@@ -1736,12 +2484,11 @@ function openCalendarEntryForm(entryId=null){
                 <input
                     type="time"
                     id="calTime"
-                    value="${entry ? entry.time : "20:00"}">
+                    value="${entry?entry.time:"20:00"}">
 
             </div>
 
         </div>
-
 
         <div class="form-group">
 
@@ -1750,11 +2497,9 @@ function openCalendarEntryForm(entryId=null){
             </label>
 
             <textarea
-                id="calDescription"
-                placeholder="Beschreibung...">${entry ? escapeHTML(entry.description) : ""}</textarea>
+                id="calDescription">${entry?escapeHTML(entry.description):""}</textarea>
 
         </div>
-
 
         <div class="modal-actions">
 
@@ -1768,7 +2513,7 @@ function openCalendarEntryForm(entryId=null){
 
             <button
                 class="btn btn-primary"
-                onclick="saveCalendarEntry(${entry ? entry.id : "null"})">
+                onclick="saveCalendarEntry(${id===null?"null":id})">
 
                 💾 Speichern
 
@@ -1781,8 +2526,9 @@ function openCalendarEntryForm(entryId=null){
 
     if(entry){
 
-        document.getElementById("calType").value =
-            entry.type;
+        document.getElementById(
+            "calType"
+        ).value=entry.type;
 
     }
 
@@ -1791,34 +2537,36 @@ function openCalendarEntryForm(entryId=null){
 
 function saveCalendarEntry(id){
 
-    if(!isAdmin) return;
+    const title=
+        document.getElementById(
+            "calTitle"
+        ).value.trim();
+
+    const type=
+        document.getElementById(
+            "calType"
+        ).value;
+
+    const date=
+        document.getElementById(
+            "calDate"
+        ).value;
+
+    const time=
+        document.getElementById(
+            "calTime"
+        ).value;
+
+    const description=
+        document.getElementById(
+            "calDescription"
+        ).value.trim();
 
 
-    const title =
-        document.getElementById("calTitle")
-        .value.trim();
-
-    const type =
-        document.getElementById("calType")
-        .value;
-
-    const date =
-        document.getElementById("calDate")
-        .value;
-
-    const time =
-        document.getElementById("calTime")
-        .value;
-
-    const description =
-        document.getElementById("calDescription")
-        .value.trim();
-
-
-    if(!title || !date){
+    if(!title||!date){
 
         alert(
-            "Bitte Titel und Datum eingeben."
+            "Titel und Datum sind erforderlich."
         );
 
         return;
@@ -1842,13 +2590,12 @@ function saveCalendarEntry(id){
 
     }else{
 
-        const entry =
+        const entry=
             calendarEntries.find(
                 e=>e.id===id
             );
 
-        if(!entry) return;
-
+        if(!entry)return;
 
         entry.title=title;
         entry.type=type;
@@ -1866,9 +2613,7 @@ function saveCalendarEntry(id){
     renderCalendar();
 
     showToast(
-        id===null
-        ? "📅 Kalendereintrag erstellt."
-        : "📅 Kalendereintrag aktualisiert."
+        "📅 Kalender aktualisiert."
     );
 
 }
@@ -1876,14 +2621,14 @@ function saveCalendarEntry(id){
 
 function deleteCalendarEntry(id){
 
-    if(!isAdmin) return;
+    if(!isAdmin)return;
 
 
     if(
         !confirm(
-            "Diesen Kalendereintrag löschen?"
+            "Kalendereintrag löschen?"
         )
-    ) return;
+    )return;
 
 
     calendarEntries=
@@ -1891,17 +2636,12 @@ function deleteCalendarEntry(id){
             e=>e.id!==id
         );
 
-
     saveData();
 
     renderCalendar();
 
 }
 
-
-/* =====================================================
-   KALENDER
-===================================================== */
 
 function changeMonth(amount){
 
@@ -1916,18 +2656,21 @@ function changeMonth(amount){
 
 function renderCalendar(){
 
-    const year =
+    const year=
         calendarDate.getFullYear();
 
-    const month =
+    const month=
         calendarDate.getMonth();
 
 
     document.getElementById(
         "calendarTitle"
     ).textContent=
-        new Date(year,month,1)
-        .toLocaleDateString(
+        new Date(
+            year,
+            month,
+            1
+        ).toLocaleDateString(
             "de-DE",
             {
                 month:"long",
@@ -1936,16 +2679,21 @@ function renderCalendar(){
         );
 
 
-    const firstDay =
-        new Date(year,month,1).getDay();
+    const firstDay=
+        new Date(
+            year,
+            month,
+            1
+        ).getDay();
 
-    const offset =
+
+    const offset=
         firstDay===0
-        ? 6
-        : firstDay-1;
+        ?6
+        :firstDay-1;
 
 
-    const days =
+    const days=
         new Date(
             year,
             month+1,
@@ -1953,7 +2701,7 @@ function renderCalendar(){
         ).getDate();
 
 
-    const grid =
+    const grid=
         document.getElementById(
             "calendarGrid"
         );
@@ -1961,7 +2709,11 @@ function renderCalendar(){
     grid.innerHTML="";
 
 
-    for(let i=0;i<offset;i++){
+    for(
+        let i=0;
+        i<offset;
+        i++
+    ){
 
         grid.innerHTML+=`
             <div class="calendar-day"></div>
@@ -1970,10 +2722,15 @@ function renderCalendar(){
     }
 
 
-    const now=new Date();
+    const now=
+        new Date();
 
 
-    for(let day=1;day<=days;day++){
+    for(
+        let day=1;
+        day<=days;
+        day++
+    ){
 
         const date=
             `${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
@@ -1988,7 +2745,7 @@ function renderCalendar(){
         let html=`
 
             <div
-                class="calendar-day ${today ? "today":""}">
+                class="calendar-day ${today?"today":""}">
 
                 <div class="day-number">
                     ${day}
@@ -1998,73 +2755,78 @@ function renderCalendar(){
 
 
         raids
-            .filter(r=>r.date===date)
-            .forEach(raid=>{
+            .filter(
+                r=>r.date===date
+            )
+            .forEach(
+                raid=>{
 
-                html+=`
+                    html+=`
 
-                    <div class="calendar-item calendar-raid">
+                        <div
+                            class="calendar-item calendar-raid">
 
-                        ⚔️
-                        ${escapeHTML(raid.time)}
-                        ·
-                        ${escapeHTML(raid.name)}
+                            ⚔️
+                            ${escapeHTML(raid.time)}
+                            ·
+                            ${escapeHTML(raid.name)}
 
-                    </div>
+                        </div>
 
-                `;
+                    `;
 
-            });
+                }
+            );
 
 
         events
-            .filter(e=>e.date===date)
-            .forEach(event=>{
+            .filter(
+                e=>e.date===date
+            )
+            .forEach(
+                event=>{
 
-                html+=`
+                    html+=`
 
-                    <div class="calendar-item calendar-event">
+                        <div
+                            class="calendar-item calendar-event">
 
-                        🎉
-                        ${escapeHTML(event.time)}
-                        ·
-                        ${escapeHTML(event.name)}
+                            🎉
+                            ${escapeHTML(event.time)}
+                            ·
+                            ${escapeHTML(event.name)}
 
-                    </div>
+                        </div>
 
-                `;
+                    `;
 
-            });
+                }
+            );
 
 
         calendarEntries
-            .filter(e=>e.date===date)
-            .forEach(entry=>{
+            .filter(
+                e=>e.date===date
+            )
+            .forEach(
+                entry=>{
 
-                const typeClass=
-                    entry.type==="Info"
-                    ? "calendar-info"
-                    : entry.type==="Sonstiges"
-                    ? "calendar-other"
-                    : "calendar-event";
+                    html+=`
 
+                        <div
+                            class="calendar-item calendar-info">
 
-                html+=`
+                            ${escapeHTML(entry.type)}
+                            ·
+                            ${escapeHTML(entry.time||"")}
+                            ·
+                            ${escapeHTML(entry.title)}
 
-                    <div
-                        class="calendar-item ${typeClass}">
-
-                        ${escapeHTML(entry.type)}
-                        ·
-                        ${escapeHTML(entry.time || "")}
-                        ·
-                        ${escapeHTML(entry.title)}
-
-                        ${
-                            isAdmin
-                            ?
-                            `
-                            <div class="calendar-admin-tools">
+                            ${
+                                isAdmin
+                                ?
+                                `
+                                <br><br>
 
                                 <button
                                     class="btn btn-secondary btn-small"
@@ -2081,21 +2843,21 @@ function renderCalendar(){
                                     🗑️
 
                                 </button>
+                                `
+                                :""
+                            }
 
-                            </div>
-                            `
-                            :
-                            ""
-                        }
+                        </div>
 
-                    </div>
+                    `;
 
-                `;
-
-            });
+                }
+            );
 
 
-        html+=`</div>`;
+        html+=`
+            </div>
+        `;
 
         grid.innerHTML+=html;
 
@@ -2104,9 +2866,9 @@ function renderCalendar(){
 }
 
 
-/* =====================================================
-   RAID FORM
-===================================================== */
+/* =========================================================
+   RAID ERSTELLEN
+========================================================= */
 
 function openRaidForm(id=null){
 
@@ -2121,10 +2883,14 @@ function openRaidForm(id=null){
     }
 
 
-    const raid =
+    const raid=
         id!==null
-        ? raids.find(r=>r.id===id)
-        : null;
+        ?
+        raids.find(
+            r=>r.id===id
+        )
+        :
+        null;
 
 
     openModal(`
@@ -2132,8 +2898,10 @@ function openRaidForm(id=null){
         <h2>
             ⚔️
             ${raid
-                ? "Raid bearbeiten"
-                : "Raid erstellen"}
+                ?
+                "Raid bearbeiten"
+                :
+                "Raid erstellen"}
         </h2>
 
 
@@ -2145,7 +2913,7 @@ function openRaidForm(id=null){
 
             <input
                 id="raidName"
-                value="${raid ? escapeHTML(raid.name) : ""}"
+                value="${raid?escapeHTML(raid.name):""}"
                 placeholder="z.B. Mogu'shan Palast">
 
         </div>
@@ -2154,14 +2922,14 @@ function openRaidForm(id=null){
         <div class="form-group">
 
             <label>
-                Raidgröße
+                Raidgröße *
             </label>
 
             <select id="raidSize">
 
                 <option
                     value="10"
-                    ${raid?.size===10 ? "selected":""}>
+                    ${raid?.size===10?"selected":""}>
 
                     10 Spieler
 
@@ -2169,7 +2937,7 @@ function openRaidForm(id=null){
 
                 <option
                     value="25"
-                    ${raid?.size===25 ? "selected":""}>
+                    ${raid?.size===25?"selected":""}>
 
                     25 Spieler
 
@@ -2191,7 +2959,7 @@ function openRaidForm(id=null){
                 <input
                     type="date"
                     id="raidDate"
-                    value="${raid ? raid.date : ""}">
+                    value="${raid?raid.date:""}">
 
             </div>
 
@@ -2205,11 +2973,80 @@ function openRaidForm(id=null){
                 <input
                     type="time"
                     id="raidTime"
-                    value="${raid ? raid.time : "20:00"}">
+                    value="${raid?raid.time:"20:00"}">
 
             </div>
 
         </div>
+
+
+        <h3 style="color:var(--gold);">
+            Rollenanforderungen
+        </h3>
+
+        <p class="muted">
+            Der Admin kann hier festlegen, wie viele Tanks,
+            Heiler und DDs für diesen Raid benötigt werden.
+            Die Summe darf maximal der gewählten Raidgröße entsprechen.
+        </p>
+
+
+        <div class="role-limit-form">
+
+            <div>
+
+                <label>
+                    🛡️ Tanks
+                </label>
+
+                <input
+                    type="number"
+                    id="raidTankLimit"
+                    min="1"
+                    max="10"
+                    value="${raid?raid.tankLimit:2}">
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    💚 Heiler
+                </label>
+
+                <input
+                    type="number"
+                    id="raidHealLimit"
+                    min="1"
+                    max="10"
+                    value="${raid?raid.healLimit:5}">
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    ⚔️ DDs
+                </label>
+
+                <input
+                    type="number"
+                    id="raidDDLimit"
+                    min="1"
+                    max="20"
+                    value="${raid?raid.ddLimit:3}">
+
+            </div>
+
+        </div>
+
+
+        <p
+            id="raidTotalPreview"
+            class="muted">
+        </p>
 
 
         <div class="form-group">
@@ -2219,7 +3056,8 @@ function openRaidForm(id=null){
             </label>
 
             <textarea
-                id="raidDescription">${raid ? escapeHTML(raid.description) : ""}</textarea>
+                id="raidDescription"
+                placeholder="Raidinformationen...">${raid?escapeHTML(raid.description):""}</textarea>
 
         </div>
 
@@ -2236,9 +3074,9 @@ function openRaidForm(id=null){
 
             <button
                 class="btn btn-primary"
-                onclick="saveRaid(${id===null ? "null":id})">
+                onclick="saveRaid(${id===null?"null":id})">
 
-                💾 Speichern
+                💾 Raid speichern
 
             </button>
 
@@ -2246,38 +3084,213 @@ function openRaidForm(id=null){
 
     `);
 
+
+    updateRaidTotal();
+
+
+    [
+        "raidTankLimit",
+        "raidHealLimit",
+        "raidDDLimit",
+        "raidSize"
+    ]
+    .forEach(
+        elementId=>{
+
+            document
+                .getElementById(
+                    elementId
+                )
+                .addEventListener(
+                    "input",
+                    updateRaidTotal
+                );
+
+            document
+                .getElementById(
+                    elementId
+                )
+                .addEventListener(
+                    "change",
+                    updateRaidTotal
+                );
+
+        }
+    );
+
+}
+
+
+function updateRaidTotal(){
+
+    const tank=
+        Number(
+            document.getElementById(
+                "raidTankLimit"
+            )?.value||0
+        );
+
+    const heal=
+        Number(
+            document.getElementById(
+                "raidHealLimit"
+            )?.value||0
+        );
+
+    const dd=
+        Number(
+            document.getElementById(
+                "raidDDLimit"
+            )?.value||0
+        );
+
+    const size=
+        Number(
+            document.getElementById(
+                "raidSize"
+            )?.value||0
+        );
+
+
+    const total=
+        tank+
+        heal+
+        dd;
+
+
+    const preview=
+        document.getElementById(
+            "raidTotalPreview"
+        );
+
+
+    if(!preview)return;
+
+
+    if(total>size){
+
+        preview.innerHTML=
+            `
+            <span style="color:#ff6969">
+                ⚠️ ${total}/${size} Rollen eingetragen.
+                Die Rollenanforderungen dürfen die Raidgröße
+                nicht überschreiten.
+            </span>
+            `;
+
+    }else{
+
+        preview.innerHTML=
+            `
+            👥
+            Rollenplätze:
+            ${total}/${size}
+            ·
+            ${size-total}
+            zusätzliche Plätze
+            `;
+
+    }
+
 }
 
 
 function saveRaid(id){
 
-    if(!isAdmin) return;
-
-
     const name=
-        document.getElementById("raidName")
-        .value.trim();
+        document.getElementById(
+            "raidName"
+        ).value.trim();
 
     const size=
         Number(
-            document.getElementById("raidSize").value
+            document.getElementById(
+                "raidSize"
+            ).value
         );
 
     const date=
-        document.getElementById("raidDate").value;
+        document.getElementById(
+            "raidDate"
+        ).value;
 
     const time=
-        document.getElementById("raidTime").value;
+        document.getElementById(
+            "raidTime"
+        ).value;
+
+    const tankLimit=
+        Number(
+            document.getElementById(
+                "raidTankLimit"
+            ).value
+        );
+
+    const healLimit=
+        Number(
+            document.getElementById(
+                "raidHealLimit"
+            ).value
+        );
+
+    const ddLimit=
+        Number(
+            document.getElementById(
+                "raidDDLimit"
+            ).value
+        );
 
     const description=
-        document.getElementById("raidDescription")
-        .value.trim();
+        document.getElementById(
+            "raidDescription"
+        ).value.trim();
 
 
-    if(!name || !date || !time){
+    if(
+        !name||
+        !date||
+        !time
+    ){
 
         alert(
-            "Bitte Name, Datum und Uhrzeit eingeben."
+            "Bitte Name, Datum und Uhrzeit ausfüllen."
+        );
+
+        return;
+
+    }
+
+
+    if(
+        tankLimit<1||
+        tankLimit>10||
+        healLimit<1||
+        healLimit>10||
+        ddLimit<1||
+        ddLimit>20
+    ){
+
+        alert(
+            "Tanks: 1–10, Heiler: 1–10, DDs: 1–20."
+        );
+
+        return;
+
+    }
+
+
+    const required=
+        tankLimit+
+        healLimit+
+        ddLimit;
+
+
+    if(required>size){
+
+        alert(
+            `Die Rollenanforderungen (${required}) `
+            +
+            `dürfen nicht größer als die Raidgröße (${size}) sein.`
         );
 
         return;
@@ -2295,6 +3308,11 @@ function saveRaid(id){
             size,
             date,
             time,
+
+            tankLimit,
+            healLimit,
+            ddLimit,
+
             description,
 
             players:[]
@@ -2304,15 +3322,54 @@ function saveRaid(id){
     }else{
 
         const raid=
-            raids.find(r=>r.id===id);
+            raids.find(
+                r=>r.id===id
+            );
 
-        if(!raid) return;
+        if(!raid)return;
 
 
-        if(raid.players.length>size){
+        /*
+         * Bestehende Rollen prüfen
+         */
+
+        const tanks=
+            raid.players.filter(
+                p=>p.role==="Tank"
+            ).length;
+
+        const healers=
+            raid.players.filter(
+                p=>p.role==="Heiler"
+            ).length;
+
+        const dds=
+            raid.players.filter(
+                p=>p.role==="DD"
+            ).length;
+
+
+        if(
+            tanks>tankLimit||
+            healers>healLimit||
+            dds>ddLimit
+        ){
 
             alert(
-                "Die Raidgröße darf nicht kleiner als die Teilnehmerzahl sein."
+                "Die neuen Rollenlimits sind kleiner als bereits angemeldete Spieler."
+            );
+
+            return;
+
+        }
+
+
+        if(
+            raid.players.length>size
+        ){
+
+            alert(
+                "Die Raidgröße kann nicht kleiner als die Teilnehmerzahl sein."
             );
 
             return;
@@ -2324,6 +3381,11 @@ function saveRaid(id){
         raid.size=size;
         raid.date=date;
         raid.time=time;
+
+        raid.tankLimit=tankLimit;
+        raid.healLimit=healLimit;
+        raid.ddLimit=ddLimit;
+
         raid.description=description;
 
     }
@@ -2337,52 +3399,60 @@ function saveRaid(id){
 
     showToast(
         id===null
-        ? "⚔️ Raid erstellt."
-        : "⚔️ Raid aktualisiert."
+        ?
+        "⚔️ Raid erstellt."
+        :
+        "⚔️ Raid aktualisiert."
     );
 
 }
 
 
-/* =====================================================
+/* =========================================================
    RAID ANMELDUNG
-===================================================== */
+========================================================= */
 
-function openRaidSignup(raidId){
-
-    const raid=
-        raids.find(r=>r.id===raidId);
-
-    if(!raid) return;
-
+function openRaidSignup(id){
 
     openPlayerSignupForm(
         "raid",
-        raidId,
-        raid.name
+        id,
+        raids.find(
+            r=>r.id===id
+        )?.name||"Raid"
     );
 
 }
 
 
-function openPlayerSignupForm(type,id,title){
+function openPlayerSignupForm(
+    type,
+    id,
+    title
+){
 
     const classes=
         Object.keys(wowClasses)
-        .map(c=>`
-            <option value="${escapeHTML(c)}">
-                ${escapeHTML(c)}
-            </option>
-        `)
+        .map(
+            c=>`
+
+                <option value="${escapeHTML(c)}">
+                    ${escapeHTML(c)}
+                </option>
+
+            `
+        )
         .join("");
 
 
     openModal(`
 
         <h2>
+
             ${type==="raid"
                 ? "⚔️ Raid-Anmeldung"
                 : "🎉 Event-Anmeldung"}
+
         </h2>
 
         <p class="muted">
@@ -2398,7 +3468,7 @@ function openPlayerSignupForm(type,id,title){
 
             <input
                 id="signupPlayer"
-                placeholder="z.B. Max">
+                placeholder="Spielername">
 
         </div>
 
@@ -2411,7 +3481,7 @@ function openPlayerSignupForm(type,id,title){
 
             <input
                 id="signupCharacter"
-                placeholder="z.B. Arthas">
+                placeholder="Charakter">
 
         </div>
 
@@ -2439,8 +3509,7 @@ function openPlayerSignupForm(type,id,title){
                 Spezialisierung *
             </label>
 
-            <select id="signupSpec">
-            </select>
+            <select id="signupSpec"></select>
 
         </div>
 
@@ -2460,8 +3529,10 @@ function openPlayerSignupForm(type,id,title){
                 onclick="saveSignup('${type}',${id})">
 
                 ${type==="raid"
-                    ? "⚔️ Für Raid anmelden"
-                    : "🎉 Für Event anmelden"}
+                    ?
+                    "⚔️ Für Raid anmelden"
+                    :
+                    "🎉 Für Event anmelden"}
 
             </button>
 
@@ -2478,61 +3549,84 @@ function openPlayerSignupForm(type,id,title){
 function updateSpecs(){
 
     const className=
-        document.getElementById("signupClass").value;
+        document.getElementById(
+            "signupClass"
+        ).value;
 
-    const spec=
-        document.getElementById("signupSpec");
+    const select=
+        document.getElementById(
+            "signupSpec"
+        );
 
-
-    spec.innerHTML="";
+    select.innerHTML="";
 
 
     wowClasses[className]
-        .forEach(item=>{
+        .forEach(
+            item=>{
 
-            const option=
-                document.createElement("option");
+                const option=
+                    document.createElement(
+                        "option"
+                    );
 
-            option.value=item[0];
+                option.value=
+                    item[0];
 
-            option.textContent=
-                `${item[0]} – ${item[1]}`;
+                option.textContent=
+                    `${item[0]} – ${item[1]}`;
 
-            option.dataset.role=item[1];
+                option.dataset.role=
+                    item[1];
 
-            spec.appendChild(option);
+                select.appendChild(
+                    option
+                );
 
-        });
+            }
+        );
 
 }
 
 
-function saveSignup(type,id){
+function saveSignup(
+    type,
+    id
+){
 
     const player=
-        document.getElementById("signupPlayer")
-        .value.trim();
+        document.getElementById(
+            "signupPlayer"
+        ).value.trim();
 
     const character=
-        document.getElementById("signupCharacter")
-        .value.trim();
+        document.getElementById(
+            "signupCharacter"
+        ).value.trim();
 
     const className=
-        document.getElementById("signupClass")
-        .value;
+        document.getElementById(
+            "signupClass"
+        ).value;
 
     const specElement=
-        document.getElementById("signupSpec");
+        document.getElementById(
+            "signupSpec"
+        );
 
     const spec=
         specElement.value;
 
     const role=
-        specElement.selectedOptions[0]
+        specElement
+        .selectedOptions[0]
         .dataset.role;
 
 
-    if(!player || !character){
+    if(
+        !player||
+        !character
+    ){
 
         alert(
             "Bitte Spieler- und Charaktername eingeben."
@@ -2546,15 +3640,55 @@ function saveSignup(type,id){
     if(type==="raid"){
 
         const raid=
-            raids.find(r=>r.id===id);
+            raids.find(
+                r=>r.id===id
+            );
 
-        if(!raid) return;
+        if(!raid)return;
 
 
-        if(raid.players.length>=raid.size){
+        if(
+            raid.players.length>=
+            raid.size
+        ){
 
             alert(
                 "Der Raid ist voll."
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * Prüfen, ob Rolle voll ist
+         */
+
+        const currentRoleCount=
+            raid.players.filter(
+                p=>p.role===role
+            ).length;
+
+
+        const roleLimit=
+            role==="Tank"
+            ?
+            raid.tankLimit
+            :
+            role==="Heiler"
+            ?
+            raid.healLimit
+            :
+            raid.ddLimit;
+
+
+        if(
+            currentRoleCount>=roleLimit
+        ){
+
+            alert(
+                `Für ${role} sind bereits alle Plätze belegt.`
             );
 
             return;
@@ -2596,20 +3730,21 @@ function saveSignup(type,id){
 
         closeModal();
 
-        renderRaids();
-
-        renderCalendar();
+        renderAll();
 
         showToast(
-            "⚔️ Raid-Anmeldung gespeichert."
+            "⚔️ Erfolgreich für den Raid angemeldet."
         );
+
 
     }else{
 
         const event=
-            events.find(e=>e.id===id);
+            events.find(
+                e=>e.id===id
+            );
 
-        if(!event) return;
+        if(!event)return;
 
 
         if(
@@ -2626,10 +3761,6 @@ function saveSignup(type,id){
         }
 
 
-        /*
-         * Rollenlimit prüfen
-         */
-
         const roleCount=
             event.players.filter(
                 p=>p.role===role
@@ -2638,16 +3769,22 @@ function saveSignup(type,id){
 
         const roleLimit=
             role==="Tank"
-            ? event.tankLimit
-            : role==="Heiler"
-            ? event.healLimit
-            : event.ddLimit;
+            ?
+            event.tankLimit
+            :
+            role==="Heiler"
+            ?
+            event.healLimit
+            :
+            event.ddLimit;
 
 
-        if(roleCount>=roleLimit){
+        if(
+            roleCount>=roleLimit
+        ){
 
             alert(
-                `Für die Rolle ${role} sind bereits alle Plätze belegt.`
+                `Für ${role} sind bereits alle Plätze belegt.`
             );
 
             return;
@@ -2689,12 +3826,10 @@ function saveSignup(type,id){
 
         closeModal();
 
-        renderEvents();
-
-        renderCalendar();
+        renderAll();
 
         showToast(
-            "🎉 Event-Anmeldung gespeichert."
+            "🎉 Erfolgreich für das Event angemeldet."
         );
 
     }
@@ -2702,1328 +3837,14 @@ function saveSignup(type,id){
 }
 
 
-/* =====================================================
-   RAID RENDER
-===================================================== */
-
-function renderRaids(){
-
-    const container=
-        document.getElementById("raidContainer");
-
-    container.innerHTML="";
-
-
-    if(raids.length===0){
-
-        container.innerHTML=`
-
-            <div class="raid-card">
-
-                <div class="card-body">
-
-                    <span class="muted">
-                        Noch keine Raids erstellt.
-                    </span>
-
-                </div>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    raids
-        .slice()
-        .sort(
-            (a,b)=>
-                getStartDate(a)-
-                getStartDate(b)
-        )
-        .forEach(raid=>{
-
-            const tanks=
-                raid.players
-                .filter(p=>p.role==="Tank")
-                .length;
-
-            const healers=
-                raid.players
-                .filter(p=>p.role==="Heiler")
-                .length;
-
-            const dds=
-                raid.players
-                .filter(p=>p.role==="DD")
-                .length;
-
-
-            const percent=
-                Math.min(
-                    100,
-                    raid.players.length/
-                    raid.size*100
-                );
-
-
-            let playersHTML="";
-
-
-            raid.players.forEach(p=>{
-
-                playersHTML+=`
-
-                    <div class="player-card">
-
-                        <strong>
-                            ${escapeHTML(p.player)}
-                        </strong>
-
-                        <small>
-                            ⚔️
-                            ${escapeHTML(p.character)}
-                        </small>
-
-                        <small>
-                            ${escapeHTML(p.className)}
-                            ·
-                            ${escapeHTML(p.spec)}
-                            ·
-                            ${escapeHTML(p.role)}
-                        </small>
-
-                        ${
-                            isAdmin
-                            ?
-                            `
-                            <button
-                                class="remove-player"
-                                onclick="removeRaidPlayer(${raid.id},${p.id})">
-
-                                ×
-
-                            </button>
-                            `
-                            :
-                            ""
-                        }
-
-                    </div>
-
-                `;
-
-            });
-
-
-            for(
-                let i=raid.players.length;
-                i<raid.size;
-                i++
-            ){
-
-                playersHTML+=`
-
-                    <div class="player-card">
-
-                        <span class="empty-slot">
-                            Freier Platz
-                        </span>
-
-                    </div>
-
-                `;
-
-            }
-
-
-            container.innerHTML+=`
-
-                <article class="raid-card">
-
-                    <div class="card-header">
-
-                        <div>
-
-                            <div class="card-title">
-
-                                ⚔️
-                                ${escapeHTML(raid.name)}
-
-                            </div>
-
-                            <div class="card-meta">
-
-                                👥 ${raid.size} Spieler
-                                <br>
-                                📅 ${formatDate(raid.date)}
-                                <br>
-                                🕐 ${escapeHTML(raid.time)} Uhr
-
-                            </div>
-
-                        </div>
-
-
-                        ${
-                            isAdmin
-                            ?
-                            `
-                            <div>
-
-                                <button
-                                    class="btn btn-secondary btn-small"
-                                    onclick="openRaidForm(${raid.id})">
-
-                                    ✏️ Bearbeiten
-
-                                </button>
-
-                                <button
-                                    class="btn btn-danger btn-small"
-                                    onclick="deleteRaid(${raid.id})">
-
-                                    🗑️ Löschen
-
-                                </button>
-
-                            </div>
-                            `
-                            :
-                            ""
-                        }
-
-                    </div>
-
-
-                    <div class="card-body">
-
-                        ${renderCountdown(raid)}
-
-
-                        ${
-                            raid.description
-                            ?
-                            `
-                            <p class="card-description">
-                                ${escapeHTML(raid.description)}
-                            </p>
-                            `
-                            :
-                            ""
-                        }
-
-
-                        <div class="role-grid">
-
-                            <div class="role-box role-tank">
-
-                                <span class="role-number">
-                                    ${tanks}
-                                </span>
-
-                                🛡️ Tanks
-
-                            </div>
-
-
-                            <div class="role-box role-heal">
-
-                                <span class="role-number">
-                                    ${healers}
-                                </span>
-
-                                💚 Heiler
-
-                            </div>
-
-
-                            <div class="role-box role-dd">
-
-                                <span class="role-number">
-                                    ${dds}
-                                </span>
-
-                                ⚔️ DDs
-
-                            </div>
-
-
-                            <div class="role-box role-free">
-
-                                <span class="role-number">
-                                    ${Math.max(
-                                        0,
-                                        raid.size-
-                                        raid.players.length
-                                    )}
-                                </span>
-
-                                👥 Frei
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="progress-label">
-
-                            <span>
-                                Teilnehmer
-                            </span>
-
-                            <span>
-                                ${raid.players.length}/${raid.size}
-                            </span>
-
-                        </div>
-
-
-                        <div class="progress">
-
-                            <div
-                                class="progress-bar"
-                                style="width:${percent}%">
-                            </div>
-
-                        </div>
-
-
-                        <div class="player-grid">
-
-                            ${playersHTML}
-
-                        </div>
-
-
-                        <br>
-
-
-                        ${
-                            raid.players.length<
-                            raid.size
-                            ?
-                            `
-                            <button
-                                class="btn btn-primary"
-                                onclick="openRaidSignup(${raid.id})">
-
-                                + Für Raid anmelden
-
-                            </button>
-                            `
-                            :
-                            `
-                            <span class="muted">
-                                🔒 Raid ist voll.
-                            </span>
-                            `
-                        }
-
-                    </div>
-
-                </article>
-
-            `;
-
-        });
-
-}
-
-
-function removeRaidPlayer(raidId,playerId){
-
-    if(!isAdmin) return;
-
-
-    const raid=
-        raids.find(r=>r.id===raidId);
-
-    if(!raid) return;
-
-
-    const player=
-        raid.players.find(
-            p=>p.id===playerId
-        );
-
-
-    if(!player) return;
-
-
-    if(
-        !confirm(
-            `Anmeldung von ${player.player} entfernen?`
-        )
-    ) return;
-
-
-    raid.players=
-        raid.players.filter(
-            p=>p.id!==playerId
-        );
-
-
-    saveData();
-
-    renderRaids();
-
-    showToast(
-        "Raid-Anmeldung entfernt."
-    );
-
-}
-
-
-function deleteRaid(id){
-
-    if(!isAdmin) return;
-
-
-    const raid=
-        raids.find(r=>r.id===id);
-
-
-    if(
-        !raid ||
-        !confirm(
-            `Raid "${raid.name}" wirklich löschen?`
-        )
-    ) return;
-
-
-    raids=
-        raids.filter(r=>r.id!==id);
-
-
-    saveData();
-
-    renderAll();
-
-}
-
-
-/* =====================================================
-   EVENT FORM
-===================================================== */
-
-function openEventForm(id=null){
-
-    if(!isAdmin){
-
-        alert(
-            "Nur der Admin kann Events erstellen."
-        );
-
-        return;
-
-    }
-
-
-    const event=
-        id!==null
-        ? events.find(e=>e.id===id)
-        : null;
-
-
-    openModal(`
-
-        <h2>
-            🎉
-            ${event
-                ? "Event bearbeiten"
-                : "Event erstellen"}
-        </h2>
-
-
-        <div class="form-group">
-
-            <label>
-                Eventname *
-            </label>
-
-            <input
-                id="eventName"
-                value="${event ? escapeHTML(event.name) : ""}"
-                placeholder="z.B. Gildenabend">
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>
-                Eventart *
-            </label>
-
-            <select id="eventType">
-
-                <option value="Gildenevent">
-                    🎉 Gildenevent
-                </option>
-
-                <option value="Dungeon">
-                    🏰 Dungeon
-                </option>
-
-                <option value="Mythic+">
-                    ⚔️ Mythic+
-                </option>
-
-                <option value="PvP">
-                    🏹 PvP
-                </option>
-
-                <option value="Transmog">
-                    👗 Transmog
-                </option>
-
-                <option value="Erfolge">
-                    🏆 Erfolge
-                </option>
-
-                <option value="Leveln">
-                    ⭐ Leveln
-                </option>
-
-                <option value="Sonstiges">
-                    📌 Sonstiges
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <div class="form-row">
-
-            <div class="form-group">
-
-                <label>
-                    Datum *
-                </label>
-
-                <input
-                    type="date"
-                    id="eventDate"
-                    value="${event ? event.date : ""}">
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>
-                    Startzeit *
-                </label>
-
-                <input
-                    type="time"
-                    id="eventTime"
-                    value="${event ? event.time : "20:00"}">
-
-            </div>
-
-        </div>
-
-
-        <h3 style="color:var(--gold);">
-            Rollenplätze
-        </h3>
-
-        <p class="muted">
-            Lege fest, wie viele Spieler jeder Rolle teilnehmen dürfen.
-            Die Summe bestimmt die maximale Teilnehmerzahl.
-        </p>
-
-
-        <div class="role-limit-form">
-
-            <div>
-
-                <label>
-                    🛡️ Tanks
-                </label>
-
-                <input
-                    type="number"
-                    id="eventTankLimit"
-                    min="1"
-                    max="10"
-                    value="${event ? event.tankLimit : 2}">
-
-            </div>
-
-
-            <div>
-
-                <label>
-                    💚 Heiler
-                </label>
-
-                <input
-                    type="number"
-                    id="eventHealLimit"
-                    min="1"
-                    max="10"
-                    value="${event ? event.healLimit : 4}">
-
-            </div>
-
-
-            <div>
-
-                <label>
-                    ⚔️ DDs
-                </label>
-
-                <input
-                    type="number"
-                    id="eventDDLimit"
-                    min="1"
-                    max="20"
-                    value="${event ? event.ddLimit : 14}">
-
-            </div>
-
-        </div>
-
-
-        <p
-            id="eventTotalPreview"
-            class="muted"
-            style="margin-top:10px;">
-        </p>
-
-
-        <div class="form-group">
-
-            <label>
-                Beschreibung
-            </label>
-
-            <textarea
-                id="eventDescription"
-                placeholder="Beschreibung des Events...">${event ? escapeHTML(event.description) : ""}</textarea>
-
-        </div>
-
-
-        <div class="modal-actions">
-
-            <button
-                class="btn btn-secondary"
-                onclick="closeModal()">
-
-                Abbrechen
-
-            </button>
-
-            <button
-                class="btn btn-primary"
-                onclick="saveEvent(${id===null ? "null":id})">
-
-                💾 Event speichern
-
-            </button>
-
-        </div>
-
-    `);
-
-
-    if(event){
-
-        document.getElementById("eventType").value=
-            event.type;
-
-    }
-
-
-    updateEventTotal();
-
-
-    [
-        "eventTankLimit",
-        "eventHealLimit",
-        "eventDDLimit"
-    ]
-    .forEach(id=>{
-
-        document
-            .getElementById(id)
-            .addEventListener(
-                "input",
-                updateEventTotal
-            );
-
-    });
-
-}
-
-
-function updateEventTotal(){
-
-    const tank=
-        Number(
-            document.getElementById(
-                "eventTankLimit"
-            )?.value||0
-        );
-
-    const heal=
-        Number(
-            document.getElementById(
-                "eventHealLimit"
-            )?.value||0
-        );
-
-    const dd=
-        Number(
-            document.getElementById(
-                "eventDDLimit"
-            )?.value||0
-        );
-
-
-    const total=tank+heal+dd;
-
-
-    const preview=
-        document.getElementById(
-            "eventTotalPreview"
-        );
-
-
-    if(preview){
-
-        preview.textContent=
-            `👥 Maximale Teilnehmerzahl: ${total} Spieler`;
-
-    }
-
-}
-
-
-function saveEvent(id){
-
-    if(!isAdmin) return;
-
-
-    const name=
-        document.getElementById("eventName")
-        .value.trim();
-
-    const type=
-        document.getElementById("eventType")
-        .value;
-
-    const date=
-        document.getElementById("eventDate")
-        .value;
-
-    const time=
-        document.getElementById("eventTime")
-        .value;
-
-    const tankLimit=
-        Number(
-            document.getElementById(
-                "eventTankLimit"
-            ).value
-        );
-
-    const healLimit=
-        Number(
-            document.getElementById(
-                "eventHealLimit"
-            ).value
-        );
-
-    const ddLimit=
-        Number(
-            document.getElementById(
-                "eventDDLimit"
-            ).value
-        );
-
-    const description=
-        document.getElementById(
-            "eventDescription"
-        ).value.trim();
-
-
-    if(!name || !date || !time){
-
-        alert(
-            "Bitte Name, Datum und Uhrzeit ausfüllen."
-        );
-
-        return;
-
-    }
-
-
-    if(
-        tankLimit<1 ||
-        tankLimit>10 ||
-        healLimit<1 ||
-        healLimit>10 ||
-        ddLimit<1 ||
-        ddLimit>20
-    ){
-
-        alert(
-            "Tanks: 1–10, Heiler: 1–10, DDs: 1–20."
-        );
-
-        return;
-
-    }
-
-
-    const max=
-        tankLimit+
-        healLimit+
-        ddLimit;
-
-
-    if(id===null){
-
-        events.push({
-
-            id:Date.now(),
-
-            name,
-            type,
-            date,
-            time,
-
-            tankLimit,
-            healLimit,
-            ddLimit,
-
-            max,
-
-            description,
-
-            players:[]
-
-        });
-
-    }else{
-
-        const event=
-            events.find(e=>e.id===id);
-
-        if(!event) return;
-
-
-        /*
-         * Vorhandene Spieler dürfen nicht
-         * durch eine Änderung der Limits
-         * ungültig gemacht werden.
-         */
-
-        const tankPlayers=
-            event.players.filter(
-                p=>p.role==="Tank"
-            ).length;
-
-        const healPlayers=
-            event.players.filter(
-                p=>p.role==="Heiler"
-            ).length;
-
-        const ddPlayers=
-            event.players.filter(
-                p=>p.role==="DD"
-            ).length;
-
-
-        if(
-            tankPlayers>tankLimit ||
-            healPlayers>healLimit ||
-            ddPlayers>ddLimit
-        ){
-
-            alert(
-                "Die neuen Rollenlimits sind kleiner als bereits angemeldete Spieler."
-            );
-
-            return;
-
-        }
-
-
-        event.name=name;
-        event.type=type;
-        event.date=date;
-        event.time=time;
-
-        event.tankLimit=tankLimit;
-        event.healLimit=healLimit;
-        event.ddLimit=ddLimit;
-
-        event.max=max;
-
-        event.description=description;
-
-    }
-
-
-    saveData();
-
-    closeModal();
-
-    renderAll();
-
-    showToast(
-        id===null
-        ? "🎉 Event erstellt."
-        : "🎉 Event aktualisiert."
-    );
-
-}
-
-
-/* =====================================================
-   EVENT RENDER
-===================================================== */
-
-function renderEvents(){
-
-    const container=
-        document.getElementById(
-            "eventContainer"
-        );
-
-    container.innerHTML="";
-
-
-    if(events.length===0){
-
-        container.innerHTML=`
-
-            <div class="event-card">
-
-                <div class="card-body">
-
-                    <span class="muted">
-                        Noch keine Events erstellt.
-                    </span>
-
-                </div>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    events
-        .slice()
-        .sort(
-            (a,b)=>
-                getStartDate(a)-
-                getStartDate(b)
-        )
-        .forEach(event=>{
-
-            const tanks=
-                event.players.filter(
-                    p=>p.role==="Tank"
-                ).length;
-
-            const healers=
-                event.players.filter(
-                    p=>p.role==="Heiler"
-                ).length;
-
-            const dds=
-                event.players.filter(
-                    p=>p.role==="DD"
-                ).length;
-
-
-            const free=
-                Math.max(
-                    0,
-                    event.max-
-                    event.players.length
-                );
-
-
-            const percent=
-                Math.min(
-                    100,
-                    event.players.length/
-                    event.max*100
-                );
-
-
-            let playersHTML="";
-
-
-            event.players.forEach(p=>{
-
-                playersHTML+=`
-
-                    <div class="player-card">
-
-                        <strong>
-                            ${escapeHTML(p.player)}
-                        </strong>
-
-                        <small>
-                            ⚔️
-                            ${escapeHTML(p.character)}
-                        </small>
-
-                        <small>
-                            ${escapeHTML(p.className)}
-                            ·
-                            ${escapeHTML(p.spec)}
-                        </small>
-
-                        <small>
-                            ${escapeHTML(p.role)}
-                        </small>
-
-
-                        ${
-                            isAdmin
-                            ?
-                            `
-                            <button
-                                class="remove-player"
-                                onclick="removeEventPlayer(${event.id},${p.id})">
-
-                                ×
-
-                            </button>
-                            `
-                            :
-                            ""
-                        }
-
-                    </div>
-
-                `;
-
-            });
-
-
-            for(
-                let i=event.players.length;
-                i<event.max;
-                i++
-            ){
-
-                playersHTML+=`
-
-                    <div class="player-card">
-
-                        <span class="empty-slot">
-                            Freier Platz
-                        </span>
-
-                    </div>
-
-                `;
-
-            }
-
-
-            container.innerHTML+=`
-
-                <article class="event-card">
-
-                    <div class="card-header">
-
-                        <div>
-
-                            <div class="card-title">
-
-                                🎉
-                                ${escapeHTML(event.name)}
-
-                            </div>
-
-                            <div class="card-meta">
-
-                                🏷️
-                                ${escapeHTML(event.type)}
-
-                                <br>
-
-                                📅
-                                ${formatDate(event.date)}
-
-                                <br>
-
-                                🕐
-                                ${escapeHTML(event.time)} Uhr
-
-                            </div>
-
-                        </div>
-
-
-                        ${
-                            isAdmin
-                            ?
-                            `
-                            <div>
-
-                                <button
-                                    class="btn btn-secondary btn-small"
-                                    onclick="openEventForm(${event.id})">
-
-                                    ✏️ Bearbeiten
-
-                                </button>
-
-                                <button
-                                    class="btn btn-danger btn-small"
-                                    onclick="deleteEvent(${event.id})">
-
-                                    🗑️ Löschen
-
-                                </button>
-
-                            </div>
-                            `
-                            :
-                            ""
-                        }
-
-                    </div>
-
-
-                    <div class="card-body">
-
-                        ${renderCountdown(event)}
-
-
-                        ${
-                            event.description
-                            ?
-                            `
-                            <p class="card-description">
-                                ${escapeHTML(event.description)}
-                            </p>
-                            `
-                            :
-                            ""
-                        }
-
-
-                        <div class="limit-box">
-
-                            <div class="limit-item limit-tank">
-
-                                <strong>
-                                    ${tanks}/${event.tankLimit}
-                                </strong>
-
-                                🛡️ Tanks
-
-                            </div>
-
-
-                            <div class="limit-item limit-heal">
-
-                                <strong>
-                                    ${healers}/${event.healLimit}
-                                </strong>
-
-                                💚 Heiler
-
-                            </div>
-
-
-                            <div class="limit-item limit-dd">
-
-                                <strong>
-                                    ${dds}/${event.ddLimit}
-                                </strong>
-
-                                ⚔️ DDs
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="progress-label">
-
-                            <span>
-                                Teilnehmer
-                            </span>
-
-                            <span>
-                                ${event.players.length}/${event.max}
-                            </span>
-
-                        </div>
-
-
-                        <div class="progress">
-
-                            <div
-                                class="progress-bar"
-                                style="width:${percent}%">
-
-                            </div>
-
-                        </div>
-
-
-                        <div class="player-grid">
-
-                            ${playersHTML}
-
-                        </div>
-
-
-                        <br>
-
-
-                        ${
-                            free>0
-                            ?
-                            `
-                            <button
-                                class="btn btn-primary"
-                                onclick="openEventSignup(${event.id})">
-
-                                + Für Event anmelden
-
-                            </button>
-                            `
-                            :
-                            `
-                            <span class="muted">
-                                🔒 Event ist voll.
-                            </span>
-                            `
-                        }
-
-                    </div>
-
-                </article>
-
-            `;
-
-        });
-
-}
-
-
-function openEventSignup(eventId){
-
-    const event=
-        events.find(e=>e.id===eventId);
-
-    if(!event) return;
-
-
-    openPlayerSignupForm(
-        "event",
-        eventId,
-        event.name
-    );
-
-}
-
-
-function removeEventPlayer(eventId,playerId){
-
-    if(!isAdmin) return;
-
-
-    const event=
-        events.find(e=>e.id===eventId);
-
-    if(!event) return;
-
-
-    const player=
-        event.players.find(
-            p=>p.id===playerId
-        );
-
-
-    if(!player) return;
-
-
-    if(
-        !confirm(
-            `Anmeldung von ${player.player} entfernen?`
-        )
-    ) return;
-
-
-    event.players=
-        event.players.filter(
-            p=>p.id!==playerId
-        );
-
-
-    saveData();
-
-    renderEvents();
-
-    showToast(
-        "Event-Anmeldung entfernt."
-    );
-
-}
-
-
-function deleteEvent(id){
-
-    if(!isAdmin) return;
-
-
-    const event=
-        events.find(e=>e.id===id);
-
-
-    if(
-        !event ||
-        !confirm(
-            `Event "${event.name}" wirklich löschen?`
-        )
-    ) return;
-
-
-    events=
-        events.filter(e=>e.id!==id);
-
-
-    saveData();
-
-    renderAll();
-
-}
-
-
-/* =====================================================
+/* =========================================================
    COUNTDOWN
-===================================================== */
+========================================================= */
 
 function getStartDate(item){
 
     return new Date(
-        `${item.date}T${item.time || "00:00"}:00`
+        `${item.date}T${item.time||"00:00"}:00`
     );
 
 }
@@ -4034,12 +3855,9 @@ function renderCountdown(item){
     const target=
         getStartDate(item);
 
-    const now=
-        new Date();
-
     let difference=
         target.getTime()-
-        now.getTime();
+        Date.now();
 
 
     if(difference<=0){
@@ -4103,25 +3921,19 @@ function renderCountdown(item){
 
             <div class="countdown-value">
 
-                <span>
-                    ${days}
-                </span>
-                Tage ·
+                <span>${days}</span> Tage ·
 
                 <span>
                     ${String(hours).padStart(2,"0")}
-                </span>
-                Stunden ·
+                </span> Stunden ·
 
                 <span>
                     ${String(minutes).padStart(2,"0")}
-                </span>
-                Minuten ·
+                </span> Minuten ·
 
                 <span>
                     ${String(seconds).padStart(2,"0")}
-                </span>
-                Sekunden
+                </span> Sekunden
 
             </div>
 
@@ -4132,9 +3944,1377 @@ function renderCountdown(item){
 }
 
 
-/* =====================================================
-   MODAL CLICK
-===================================================== */
+/* =========================================================
+   RAID RENDER
+========================================================= */
+
+function renderRaids(){
+
+    const container=
+        document.getElementById(
+            "raidContainer"
+        );
+
+    container.innerHTML="";
+
+
+    if(raids.length===0){
+
+        container.innerHTML=`
+
+            <div class="raid-card">
+
+                <div class="card-body">
+
+                    <span class="muted">
+                        Noch keine Raids erstellt.
+                    </span>
+
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    raids
+        .slice()
+        .sort(
+            (a,b)=>
+                getStartDate(a)-
+                getStartDate(b)
+        )
+        .forEach(
+            raid=>{
+
+                const tanks=
+                    raid.players.filter(
+                        p=>p.role==="Tank"
+                    ).length;
+
+                const healers=
+                    raid.players.filter(
+                        p=>p.role==="Heiler"
+                    ).length;
+
+                const dds=
+                    raid.players.filter(
+                        p=>p.role==="DD"
+                    ).length;
+
+
+                const free=
+                    Math.max(
+                        0,
+                        raid.size-
+                        raid.players.length
+                    );
+
+
+                const percent=
+                    Math.min(
+                        100,
+                        raid.players.length/
+                        raid.size*100
+                    );
+
+
+                let playersHTML="";
+
+
+                raid.players.forEach(
+                    p=>{
+
+                        playersHTML+=`
+
+                            <div class="player-card">
+
+                                <strong>
+                                    ${escapeHTML(p.player)}
+                                </strong>
+
+                                <small>
+                                    ⚔️
+                                    ${escapeHTML(p.character)}
+                                </small>
+
+                                <small>
+                                    ${escapeHTML(p.className)}
+                                    ·
+                                    ${escapeHTML(p.spec)}
+                                </small>
+
+                                <small>
+                                    ${escapeHTML(p.role)}
+                                </small>
+
+                                ${
+                                    isAdmin
+                                    ?
+                                    `
+                                    <button
+                                        class="remove-player"
+                                        onclick="removeRaidPlayer(${raid.id},${p.id})">
+
+                                        ×
+
+                                    </button>
+                                    `
+                                    :""
+                                }
+
+                            </div>
+
+                        `;
+
+                    }
+                );
+
+
+                for(
+                    let i=raid.players.length;
+                    i<raid.size;
+                    i++
+                ){
+
+                    playersHTML+=`
+
+                        <div class="player-card">
+
+                            <span class="empty-slot">
+                                Freier Platz
+                            </span>
+
+                        </div>
+
+                    `;
+
+                }
+
+
+                container.innerHTML+=`
+
+                    <article class="raid-card">
+
+                        <div class="card-header">
+
+                            <div>
+
+                                <div class="card-title">
+
+                                    ⚔️
+                                    ${escapeHTML(raid.name)}
+
+                                </div>
+
+                                <div class="card-meta">
+
+                                    👥
+                                    ${raid.size} Spieler
+
+                                    <br>
+
+                                    📅
+                                    ${formatDate(raid.date)}
+
+                                    <br>
+
+                                    🕐
+                                    ${escapeHTML(raid.time)} Uhr
+
+                                </div>
+
+                            </div>
+
+
+                            ${
+                                isAdmin
+                                ?
+                                `
+                                <div>
+
+                                    <button
+                                        class="btn btn-secondary btn-small"
+                                        onclick="openRaidForm(${raid.id})">
+
+                                        ✏️ Bearbeiten
+
+                                    </button>
+
+                                    <button
+                                        class="btn btn-danger btn-small"
+                                        onclick="deleteRaid(${raid.id})">
+
+                                        🗑️ Löschen
+
+                                    </button>
+
+                                </div>
+                                :""
+                            }
+
+                        </div>
+
+
+                        <div class="card-body">
+
+                            ${renderCountdown(raid)}
+
+
+                            ${
+                                raid.description
+                                ?
+                                `
+                                <p class="card-description">
+                                    ${escapeHTML(raid.description)}
+                                </p>
+                                `
+                                :""
+                            }
+
+
+                            <!-- NEU:
+                                 ROLLENANFORDERUNGEN -->
+
+                            <div class="raid-requirements">
+
+                                <div class="requirement tank">
+
+                                    <strong>
+                                        ${tanks}/${raid.tankLimit}
+                                    </strong>
+
+                                    🛡️ Tanks benötigt
+
+                                </div>
+
+
+                                <div class="requirement heal">
+
+                                    <strong>
+                                        ${healers}/${raid.healLimit}
+                                    </strong>
+
+                                    💚 Heiler benötigt
+
+                                </div>
+
+
+                                <div class="requirement dd">
+
+                                    <strong>
+                                        ${dds}/${raid.ddLimit}
+                                    </strong>
+
+                                    ⚔️ DDs benötigt
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="role-grid">
+
+                                <div class="role-box role-tank">
+
+                                    <span class="role-number">
+                                        ${tanks}
+                                    </span>
+
+                                    🛡️ Tanks
+
+                                </div>
+
+
+                                <div class="role-box role-heal">
+
+                                    <span class="role-number">
+                                        ${healers}
+                                    </span>
+
+                                    💚 Heiler
+
+                                </div>
+
+
+                                <div class="role-box role-dd">
+
+                                    <span class="role-number">
+                                        ${dds}
+                                    </span>
+
+                                    ⚔️ DDs
+
+                                </div>
+
+
+                                <div class="role-box role-free">
+
+                                    <span class="role-number">
+                                        ${free}
+                                    </span>
+
+                                    👥 Frei
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="progress-label">
+
+                                <span>
+                                    Teilnehmer
+                                </span>
+
+                                <span>
+                                    ${raid.players.length}/${raid.size}
+                                </span>
+
+                            </div>
+
+
+                            <div class="progress">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width:${percent}%">
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="player-grid">
+
+                                ${playersHTML}
+
+                            </div>
+
+
+                            <br>
+
+
+                            ${
+                                free>0
+                                ?
+                                `
+                                <button
+                                    class="btn btn-primary"
+                                    onclick="openRaidSignup(${raid.id})">
+
+                                    + Für Raid anmelden
+
+                                </button>
+                                `
+                                :
+                                `
+                                <span class="muted">
+                                    🔒 Raid ist voll.
+                                </span>
+                                `
+                            }
+
+                        </div>
+
+                    </article>
+
+                `;
+
+            }
+        );
+
+}
+
+
+function removeRaidPlayer(
+    raidId,
+    playerId
+){
+
+    if(!isAdmin)return;
+
+
+    const raid=
+        raids.find(
+            r=>r.id===raidId
+        );
+
+    if(!raid)return;
+
+
+    const player=
+        raid.players.find(
+            p=>p.id===playerId
+        );
+
+    if(!player)return;
+
+
+    if(
+        !confirm(
+            `Anmeldung von ${player.player} entfernen?`
+        )
+    )return;
+
+
+    raid.players=
+        raid.players.filter(
+            p=>p.id!==playerId
+        );
+
+
+    saveData();
+
+    renderAll();
+
+    showToast(
+        "Raid-Anmeldung entfernt."
+    );
+
+}
+
+
+function deleteRaid(id){
+
+    if(!isAdmin)return;
+
+
+    const raid=
+        raids.find(
+            r=>r.id===id
+        );
+
+
+    if(
+        !raid||
+        !confirm(
+            `Raid "${raid.name}" wirklich löschen?`
+        )
+    )return;
+
+
+    raids=
+        raids.filter(
+            r=>r.id!==id
+        );
+
+
+    saveData();
+
+    renderAll();
+
+}
+
+
+/* =========================================================
+   EVENT PLANER
+========================================================= */
+
+function openEventForm(id=null){
+
+    if(!isAdmin){
+
+        alert(
+            "Nur der Admin kann Events erstellen."
+        );
+
+        return;
+
+    }
+
+
+    const event=
+        id!==null
+        ?
+        events.find(
+            e=>e.id===id
+        )
+        :
+        null;
+
+
+    openModal(`
+
+        <h2>
+            🎉
+            ${event
+                ?
+                "Event bearbeiten"
+                :
+                "Event erstellen"}
+        </h2>
+
+
+        <div class="form-group">
+
+            <label>
+                Eventname *
+            </label>
+
+            <input
+                id="eventName"
+                value="${event?escapeHTML(event.name):""}">
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>
+                Eventart
+            </label>
+
+            <select id="eventType">
+
+                <option>
+                    Gildenevent
+                </option>
+
+                <option>
+                    Dungeon
+                </option>
+
+                <option>
+                    Mythic+
+                </option>
+
+                <option>
+                    PvP
+                </option>
+
+                <option>
+                    Transmog
+                </option>
+
+                <option>
+                    Erfolge
+                </option>
+
+                <option>
+                    Leveln
+                </option>
+
+                <option>
+                    Sonstiges
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="form-row">
+
+            <div class="form-group">
+
+                <label>
+                    Datum *
+                </label>
+
+                <input
+                    type="date"
+                    id="eventDate"
+                    value="${event?event.date:""}">
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Startzeit *
+                </label>
+
+                <input
+                    type="time"
+                    id="eventTime"
+                    value="${event?event.time:"20:00"}">
+
+            </div>
+
+        </div>
+
+
+        <h3 style="color:var(--gold);">
+            Rollenplätze
+        </h3>
+
+
+        <div class="role-limit-form">
+
+            <div>
+
+                <label>
+                    🛡️ Tanks
+                </label>
+
+                <input
+                    type="number"
+                    id="eventTankLimit"
+                    min="1"
+                    max="10"
+                    value="${event?event.tankLimit:2}">
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    💚 Heiler
+                </label>
+
+                <input
+                    type="number"
+                    id="eventHealLimit"
+                    min="1"
+                    max="10"
+                    value="${event?event.healLimit:4}">
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    ⚔️ DDs
+                </label>
+
+                <input
+                    type="number"
+                    id="eventDDLimit"
+                    min="1"
+                    max="20"
+                    value="${event?event.ddLimit:14}">
+
+            </div>
+
+        </div>
+
+
+        <p
+            id="eventTotalPreview"
+            class="muted">
+        </p>
+
+
+        <div class="form-group">
+
+            <label>
+                Beschreibung
+            </label>
+
+            <textarea
+                id="eventDescription">${event?escapeHTML(event.description):""}</textarea>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+            <button
+                class="btn btn-secondary"
+                onclick="closeModal()">
+
+                Abbrechen
+
+            </button>
+
+            <button
+                class="btn btn-primary"
+                onclick="saveEvent(${id===null?"null":id})">
+
+                💾 Event speichern
+
+            </button>
+
+        </div>
+
+    `);
+
+
+    if(event){
+
+        document.getElementById(
+            "eventType"
+        ).value=event.type;
+
+    }
+
+
+    updateEventTotal();
+
+
+    [
+        "eventTankLimit",
+        "eventHealLimit",
+        "eventDDLimit"
+    ]
+    .forEach(
+        elementId=>{
+
+            document
+                .getElementById(
+                    elementId
+                )
+                .addEventListener(
+                    "input",
+                    updateEventTotal
+                );
+
+        }
+    );
+
+}
+
+
+function updateEventTotal(){
+
+    const tank=
+        Number(
+            document.getElementById(
+                "eventTankLimit"
+            )?.value||0
+        );
+
+    const heal=
+        Number(
+            document.getElementById(
+                "eventHealLimit"
+            )?.value||0
+        );
+
+    const dd=
+        Number(
+            document.getElementById(
+                "eventDDLimit"
+            )?.value||0
+        );
+
+
+    const preview=
+        document.getElementById(
+            "eventTotalPreview"
+        );
+
+
+    if(preview){
+
+        preview.textContent=
+            `👥 Maximale Teilnehmerzahl: ${tank+heal+dd}`;
+
+    }
+
+}
+
+
+function saveEvent(id){
+
+    const name=
+        document.getElementById(
+            "eventName"
+        ).value.trim();
+
+    const type=
+        document.getElementById(
+            "eventType"
+        ).value;
+
+    const date=
+        document.getElementById(
+            "eventDate"
+        ).value;
+
+    const time=
+        document.getElementById(
+            "eventTime"
+        ).value;
+
+    const tankLimit=
+        Number(
+            document.getElementById(
+                "eventTankLimit"
+            ).value
+        );
+
+    const healLimit=
+        Number(
+            document.getElementById(
+                "eventHealLimit"
+            ).value
+        );
+
+    const ddLimit=
+        Number(
+            document.getElementById(
+                "eventDDLimit"
+            ).value
+        );
+
+    const description=
+        document.getElementById(
+            "eventDescription"
+        ).value.trim();
+
+
+    if(
+        !name||
+        !date||
+        !time
+    ){
+
+        alert(
+            "Bitte Name, Datum und Uhrzeit ausfüllen."
+        );
+
+        return;
+
+    }
+
+
+    const max=
+        tankLimit+
+        healLimit+
+        ddLimit;
+
+
+    if(
+        tankLimit<1||
+        tankLimit>10||
+        healLimit<1||
+        healLimit>10||
+        ddLimit<1||
+        ddLimit>20
+    ){
+
+        alert(
+            "Tanks 1–10, Heiler 1–10, DDs 1–20."
+        );
+
+        return;
+
+    }
+
+
+    if(id===null){
+
+        events.push({
+
+            id:Date.now(),
+
+            name,
+            type,
+            date,
+            time,
+
+            tankLimit,
+            healLimit,
+            ddLimit,
+
+            max,
+
+            description,
+
+            players:[]
+
+        });
+
+    }else{
+
+        const event=
+            events.find(
+                e=>e.id===id
+            );
+
+        if(!event)return;
+
+
+        const tanks=
+            event.players.filter(
+                p=>p.role==="Tank"
+            ).length;
+
+        const healers=
+            event.players.filter(
+                p=>p.role==="Heiler"
+            ).length;
+
+        const dds=
+            event.players.filter(
+                p=>p.role==="DD"
+            ).length;
+
+
+        if(
+            tanks>tankLimit||
+            healers>healLimit||
+            dds>ddLimit
+        ){
+
+            alert(
+                "Die neuen Rollenlimits sind kleiner als bestehende Anmeldungen."
+            );
+
+            return;
+
+        }
+
+
+        event.name=name;
+        event.type=type;
+        event.date=date;
+        event.time=time;
+
+        event.tankLimit=tankLimit;
+        event.healLimit=healLimit;
+        event.ddLimit=ddLimit;
+
+        event.max=max;
+
+        event.description=description;
+
+    }
+
+
+    saveData();
+
+    closeModal();
+
+    renderAll();
+
+    showToast(
+        id===null
+        ?
+        "🎉 Event erstellt."
+        :
+        "🎉 Event aktualisiert."
+    );
+
+}
+
+
+/* =========================================================
+   EVENTS RENDER
+========================================================= */
+
+function openEventSignup(id){
+
+    const event=
+        events.find(
+            e=>e.id===id
+        );
+
+    if(!event)return;
+
+
+    openPlayerSignupForm(
+        "event",
+        id,
+        event.name
+    );
+
+}
+
+
+function renderEvents(){
+
+    const container=
+        document.getElementById(
+            "eventContainer"
+        );
+
+    container.innerHTML="";
+
+
+    if(events.length===0){
+
+        container.innerHTML=`
+
+            <div class="event-card">
+
+                <div class="card-body">
+
+                    <span class="muted">
+                        Noch keine Events erstellt.
+                    </span>
+
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    events
+        .slice()
+        .sort(
+            (a,b)=>
+                getStartDate(a)-
+                getStartDate(b)
+        )
+        .forEach(
+            event=>{
+
+                const tanks=
+                    event.players.filter(
+                        p=>p.role==="Tank"
+                    ).length;
+
+                const healers=
+                    event.players.filter(
+                        p=>p.role==="Heiler"
+                    ).length;
+
+                const dds=
+                    event.players.filter(
+                        p=>p.role==="DD"
+                    ).length;
+
+
+                const free=
+                    Math.max(
+                        0,
+                        event.max-
+                        event.players.length
+                    );
+
+
+                const percent=
+                    Math.min(
+                        100,
+                        event.players.length/
+                        event.max*100
+                    );
+
+
+                let playersHTML="";
+
+
+                event.players.forEach(
+                    p=>{
+
+                        playersHTML+=`
+
+                            <div class="player-card">
+
+                                <strong>
+                                    ${escapeHTML(p.player)}
+                                </strong>
+
+                                <small>
+                                    ⚔️
+                                    ${escapeHTML(p.character)}
+                                </small>
+
+                                <small>
+                                    ${escapeHTML(p.className)}
+                                    ·
+                                    ${escapeHTML(p.spec)}
+                                </small>
+
+                                <small>
+                                    ${escapeHTML(p.role)}
+                                </small>
+
+                                ${
+                                    isAdmin
+                                    ?
+                                    `
+                                    <button
+                                        class="remove-player"
+                                        onclick="removeEventPlayer(${event.id},${p.id})">
+
+                                        ×
+
+                                    </button>
+                                    `
+                                    :""
+                                }
+
+                            </div>
+
+                        `;
+
+                    }
+                );
+
+
+                container.innerHTML+=`
+
+                    <article class="event-card">
+
+                        <div class="card-header">
+
+                            <div>
+
+                                <div class="card-title">
+
+                                    🎉
+                                    ${escapeHTML(event.name)}
+
+                                </div>
+
+                                <div class="card-meta">
+
+                                    🏷️
+                                    ${escapeHTML(event.type)}
+
+                                    <br>
+
+                                    📅
+                                    ${formatDate(event.date)}
+
+                                    <br>
+
+                                    🕐
+                                    ${escapeHTML(event.time)} Uhr
+
+                                </div>
+
+                            </div>
+
+
+                            ${
+                                isAdmin
+                                ?
+                                `
+                                <div>
+
+                                    <button
+                                        class="btn btn-secondary btn-small"
+                                        onclick="openEventForm(${event.id})">
+
+                                        ✏️ Bearbeiten
+
+                                    </button>
+
+                                    <button
+                                        class="btn btn-danger btn-small"
+                                        onclick="deleteEvent(${event.id})">
+
+                                        🗑️ Löschen
+
+                                    </button>
+
+                                </div>
+                                :""
+                            }
+
+                        </div>
+
+
+                        <div class="card-body">
+
+                            ${renderCountdown(event)}
+
+
+                            ${
+                                event.description
+                                ?
+                                `
+                                <p class="card-description">
+                                    ${escapeHTML(event.description)}
+                                </p>
+                                `
+                                :""
+                            }
+
+
+                            <div class="limit-box">
+
+                                <div class="limit-item limit-tank">
+
+                                    <strong>
+                                        ${tanks}/${event.tankLimit}
+                                    </strong>
+
+                                    🛡️ Tanks
+
+                                </div>
+
+
+                                <div class="limit-item limit-heal">
+
+                                    <strong>
+                                        ${healers}/${event.healLimit}
+                                    </strong>
+
+                                    💚 Heiler
+
+                                </div>
+
+
+                                <div class="limit-item limit-dd">
+
+                                    <strong>
+                                        ${dds}/${event.ddLimit}
+                                    </strong>
+
+                                    ⚔️ DDs
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="progress-label">
+
+                                <span>
+                                    Teilnehmer
+                                </span>
+
+                                <span>
+                                    ${event.players.length}/${event.max}
+                                </span>
+
+                            </div>
+
+
+                            <div class="progress">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width:${percent}%">
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="player-grid">
+
+                                ${playersHTML}
+
+                            </div>
+
+
+                            <br>
+
+
+                            ${
+                                free>0
+                                ?
+                                `
+                                <button
+                                    class="btn btn-primary"
+                                    onclick="openEventSignup(${event.id})">
+
+                                    + Für Event anmelden
+
+                                </button>
+                                `
+                                :
+                                `
+                                <span class="muted">
+                                    🔒 Event ist voll.
+                                </span>
+                                `
+                            }
+
+                        </div>
+
+                    </article>
+
+                `;
+
+            }
+        );
+
+}
+
+
+function removeEventPlayer(
+    eventId,
+    playerId
+){
+
+    if(!isAdmin)return;
+
+
+    const event=
+        events.find(
+            e=>e.id===eventId
+        );
+
+    if(!event)return;
+
+
+    const player=
+        event.players.find(
+            p=>p.id===playerId
+        );
+
+    if(!player)return;
+
+
+    if(
+        !confirm(
+            `Anmeldung von ${player.player} entfernen?`
+        )
+    )return;
+
+
+    event.players=
+        event.players.filter(
+            p=>p.id!==playerId
+        );
+
+
+    saveData();
+
+    renderAll();
+
+    showToast(
+        "Event-Anmeldung entfernt."
+    );
+
+}
+
+
+function deleteEvent(id){
+
+    if(!isAdmin)return;
+
+
+    const event=
+        events.find(
+            e=>e.id===id
+        );
+
+
+    if(
+        !event||
+        !confirm(
+            `Event "${event.name}" wirklich löschen?`
+        )
+    )return;
+
+
+    events=
+        events.filter(
+            e=>e.id!==id
+        );
+
+
+    saveData();
+
+    renderAll();
+
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
 
 document
     .getElementById("modal")
@@ -4150,9 +5330,9 @@ document
     );
 
 
-/* =====================================================
-   RENDER
-===================================================== */
+/* =========================================================
+   ALLES RENDERN
+========================================================= */
 
 function renderAll(){
 
@@ -4174,7 +5354,6 @@ renderAll();
 
 /*
  * Countdown jede Sekunde aktualisieren.
- * Die Daten selbst werden dabei nicht verändert.
  */
 
 setInterval(
