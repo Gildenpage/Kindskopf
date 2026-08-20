@@ -164,11 +164,40 @@ async function init(){
  supabaseClient.auth.onAuthStateChange(async (_event,session)=>{await updateAdminState(session);await refreshData();});
 }
 async function updateAdminState(session){
- if(!session){isAdmin=false;updateAdminStatus();return;}
- const {data,error}=await supabaseClient.from("admin_users").select("user_id").eq("user_id",session.user.id).maybeSingle();
- isAdmin=!!data&&!error;updateAdminStatus();
+ if(!session){
+  isAdmin=false;
+  updateAdminStatus();
+  return;
+ }
+ // Wichtig: Supabase Auth-Login und die sichtbare Admin-Berechtigung sind zwei
+ // getrennte Dinge. Falls RLS den SELECT auf admin_users blockiert, darf die
+ // Oberfläche nicht einfach behaupten, der Login sei fehlgeschlagen.
+ const {data,error}=await supabaseClient
+  .from("admin_users")
+  .select("user_id")
+  .eq("user_id",session.user.id)
+  .maybeSingle();
+
+ if(error){
+  console.error("Admin-Prüfung admin_users:",error);
+  // Die eigentliche Sicherheit muss über RLS auf den Schreiboperationen
+  // erfolgen. So kann ein korrekt eingeloggter Benutzer die Formulare öffnen,
+  // und Supabase entscheidet beim Speichern, ob er schreiben darf.
+  isAdmin=true;
+  updateAdminStatus();
+  showToast("🔐 Eingeloggt. Supabase prüft die Schreibberechtigung beim Speichern.");
+  return;
+ }
+
+ isAdmin=!!data;
+ updateAdminStatus();
+ if(!isAdmin) showToast("⚠️ Login ok, aber deine User-ID steht nicht in admin_users.");
 }
-function updateAdminStatus(){document.getElementById("adminStatus").classList.toggle("active",isAdmin);}
+function updateAdminStatus(){
+ const el=document.getElementById("adminStatus");
+ el.textContent=isAdmin?"🔐 Admin-Modus aktiv":"🔓 Eingeloggt – keine Adminrechte";
+ el.classList.toggle("active",isAdmin);
+}
 
 /* ===== ADMIN AUTH ===== */
 async function openAdminLogin(){
