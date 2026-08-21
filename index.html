@@ -127,7 +127,16 @@ function initSupabase(){
 }
 function escapeHTML(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
 function formatDate(date){const d=new Date(date+"T12:00:00");return Number.isNaN(d.getTime())?date:d.toLocaleDateString("de-DE",{weekday:"long",day:"2-digit",month:"2-digit",year:"numeric"});}
-function getStartDate(item){return new Date(`${item.date}T${item.time||"00:00"}:00`);}
+function getStartDate(item){
+    if(!item || !item.date) return new Date(NaN);
+
+    const date = String(item.date).trim();
+    const time = String(item.time || "00:00").trim().slice(0,5);
+
+    const d = new Date(`${date}T${time}:00`);
+
+    return d;
+}
 function scrollToSection(id){document.getElementById(id)?.scrollIntoView({behavior:"smooth"});}
 function openModal(html){document.getElementById("modalContent").innerHTML=html;document.getElementById("modal").classList.add("active");}
 function closeModal(){document.getElementById("modal").classList.remove("active");document.getElementById("modalContent").innerHTML="";}
