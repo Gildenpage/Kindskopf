@@ -225,29 +225,17 @@ async function updateAdminState(session){
   updateAdminStatus();
   return;
  }
- // Wichtig: Supabase Auth-Login und die sichtbare Admin-Berechtigung sind zwei
- // getrennte Dinge. Falls RLS den SELECT auf admin_users blockiert, darf die
- // Oberfläche nicht einfach behaupten, der Login sei fehlgeschlagen.
- const {data,error}=await supabaseClient
-  .from("admin_users")
-  .select("user_id")
-  .eq("user_id",session.user.id)
-  .maybeSingle();
-
+ const {data,error}=await supabaseClient.rpc("is_admin");
  if(error){
-  console.error("Admin-Prüfung admin_users:",error);
-  // Die eigentliche Sicherheit muss über RLS auf den Schreiboperationen
-  // erfolgen. So kann ein korrekt eingeloggter Benutzer die Formulare öffnen,
-  // und Supabase entscheidet beim Speichern, ob er schreiben darf.
-  isAdmin=true;
+  console.error("Admin-Prüfung is_admin:",error);
+  isAdmin=false;
   updateAdminStatus();
-  showToast("🔐 Eingeloggt. Supabase prüft die Schreibberechtigung beim Speichern.");
+  showToast("❌ Admin-Berechtigung konnte nicht geprüft werden.");
   return;
  }
-
- isAdmin=!!data;
+ isAdmin=data === true;
  updateAdminStatus();
- if(!isAdmin) showToast("⚠️ Login ok, aber deine User-ID steht nicht in admin_users.");
+ if(!isAdmin) showToast("⚠️ Eingeloggt, aber keine Adminrechte.");
 }
 function updateAdminStatus(){
  const el=document.getElementById("adminStatus");
@@ -267,11 +255,12 @@ async function openAdminLogin(){
 async function loginAdmin(){
  const email=document.getElementById("adminEmail")?.value.trim(),password=document.getElementById("adminPassword")?.value||"";
  if(!email||!password){alert("Bitte E-Mail und Passwort eingeben.");return;}
- const {error}=await supabaseClient.auth.signInWithPassword({email,password});
+ const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
  if(error){alert("Login fehlgeschlagen: "+error.message);return;}
- closeModal();showToast("🔐 Admin-Modus aktiviert.");
+ closeModal();
+ await updateAdminState(data.session);
+ if(isAdmin) showToast("🔐 Admin-Modus aktiviert.");
 }
-
 /* ===== NEWS ===== */
 function openNewsForm(){
  if(!isAdmin){alert("Nur der Admin kann News erstellen.");return;}
@@ -312,7 +301,17 @@ async function saveRaid(id){ if(!isAdmin){alert("Admin-Sitzung ist nicht mehr ak
  if(id!==null){const r=raids.find(x=>x.id===id);if(r&&r.players.length>payload.size){alert("Die Raidgröße kann nicht kleiner als die Teilnehmerzahl sein.");return;}if(r&&r.players.filter(p=>p.role==="Tank").length>payload.tank_limit||r&&r.players.filter(p=>p.role==="Heiler").length>payload.heal_limit||r&&r.players.filter(p=>p.role==="DD").length>payload.dd_limit){alert("Ein Rollenlimit ist kleiner als bereits angemeldete Spieler.");return;}}
  const q=id===null?supabaseClient.from("raids").insert(payload):supabaseClient.from("raids").update(payload).eq("id",id);const {error}=await q;if(error){dbError(error);return;}closeModal();await refreshData();showToast(id===null?"⚔️ Raid erstellt.":"⚔️ Raid aktualisiert.");
 }
-async function deleteRaid(id){if(!isAdmin)return;const r=raids.find(x=>x.id===id);if(!r||!confirm(`Raid "${r.name}" wirklich löschen?`))return;const {error}=await supabaseClient.from("raids").delete().eq("id",id);if(error){dbError(error);return;}await refreshData();}
+async function deleteRaid(id){
+ if(!isAdmin)return;
+ const r=raids.find(x=>x.id===id);
+ if(!r||!confirm(`Raid "${r.name}" wirklich löschen?`))return;
+ const {error:signupError}=await supabaseClient.from("signups").delete().eq("item_type","raid").eq("item_id",id);
+ if(signupError){dbError(signupError);return;}
+ const {error}=await supabaseClient.from("raids").delete().eq("id",id);
+ if(error){dbError(error);return;}
+ await refreshData();
+ showToast("⚔️ Raid und zugehörige Teilnehmer gelöscht.");
+}
 async function removeRaidPlayer(rid,pid){if(!isAdmin)return;if(!confirm("Anmeldung wirklich entfernen?"))return;const {error}=await supabaseClient.from("signups").delete().eq("id",pid);if(error){dbError(error);return;}await refreshData();}
 function signupTokenKey(type,id){return `kindsköpfe_signup_token_${type}_${id}`;}
 function rememberSignupToken(type,id,token){if(token){try{localStorage.setItem(signupTokenKey(type,id),String(token));}catch(e){}}}
@@ -342,7 +341,17 @@ async function saveEvent(id){ if(!isAdmin){alert("Admin-Sitzung ist nicht mehr a
  const payload={name:document.getElementById("eventName").value.trim(),type:document.getElementById("eventType").value.trim()||"Event",date:document.getElementById("eventDate").value,time:document.getElementById("eventTime").value,max:+document.getElementById("eventMax").value,tank_limit:+document.getElementById("eventTank").value,heal_limit:+document.getElementById("eventHeal").value,dd_limit:+document.getElementById("eventDD").value,description:document.getElementById("eventDescription").value.trim()};if(!payload.name||!payload.date||!payload.time||payload.max<1){alert("Bitte Name, Datum, Uhrzeit und Teilnehmerzahl ausfüllen.");return;}if(payload.tank_limit+payload.heal_limit+payload.dd_limit>payload.max){alert("Die Rollenlimits dürfen die maximale Teilnehmerzahl nicht überschreiten.");return;}if(id!==null){const e=events.find(x=>x.id===id);if(e&&e.players.length>payload.max){alert("Maximale Teilnehmerzahl ist kleiner als bereits angemeldete Spieler.");return;}}
  const q=id===null?supabaseClient.from("events").insert(payload):supabaseClient.from("events").update(payload).eq("id",id);const {error}=await q;if(error){dbError(error);return;}closeModal();await refreshData();showToast(id===null?"🎉 Event erstellt.":"🎉 Event aktualisiert.");
 }
-async function deleteEvent(id){if(!isAdmin)return;const e=events.find(x=>x.id===id);if(!e||!confirm(`Event "${e.name}" wirklich löschen?`))return;const {error}=await supabaseClient.from("events").delete().eq("id",id);if(error){dbError(error);return;}await refreshData();}
+async function deleteEvent(id){
+ if(!isAdmin)return;
+ const e=events.find(x=>x.id===id);
+ if(!e||!confirm(`Event "${e.name}" wirklich löschen?`))return;
+ const {error:signupError}=await supabaseClient.from("signups").delete().eq("item_type","event").eq("item_id",id);
+ if(signupError){dbError(signupError);return;}
+ const {error}=await supabaseClient.from("events").delete().eq("id",id);
+ if(error){dbError(error);return;}
+ await refreshData();
+ showToast("🎉 Event und zugehörige Teilnehmer gelöscht.");
+}
 async function removeEventPlayer(eid,pid){if(!isAdmin)return;if(!confirm("Anmeldung wirklich entfernen?"))return;const {error}=await supabaseClient.from("signups").delete().eq("id",pid);if(error){dbError(error);return;}await refreshData();}
 function renderEvents(){
  const c=document.getElementById("eventContainer");c.innerHTML="";if(!events.length){c.innerHTML='<div class="event-card"><div class="card-body muted">Noch keine Events erstellt.</div></div>';return;}events.slice().sort((a,b)=>getStartDate(a)-getStartDate(b)).forEach(e=>{e.players=e.players||[];const confirmed=e.players.filter(p=>(p.status||"confirmed")==="confirmed"),bench=e.players.filter(p=>p.status==="bench"),uncertain=e.players.filter(p=>p.status==="uncertain"),absent=e.players.filter(p=>p.status==="absent");const tanks=confirmed.filter(p=>p.role==="Tank").length,heals=confirmed.filter(p=>p.role==="Heiler").length,dds=confirmed.filter(p=>p.role==="DD").length,free=Math.max(0,e.max-confirmed.length),pct=Math.min(100,confirmed.length/e.max*100);const cardPlayer=p=>`<div class="player-card"><strong>${escapeHTML(p.player)}</strong><small>⚔️ ${escapeHTML(p.character)}</small><small>${escapeHTML(p.class_name)} · ${escapeHTML(p.spec)}</small><small>${escapeHTML(p.role)}</small><button class="remove-player" title="Meine Anmeldung entfernen" onclick="removeOwnSignup(${p.id})">×</button></div>`;let ph=confirmed.map(cardPlayer).join("");for(let i=confirmed.length;i<e.max;i++)ph+='<div class="player-card"><span class="empty-slot">Freier Platz</span></div>';const statusList=arr=>arr.length?arr.map(p=>`<div class="status-player"><strong>${escapeHTML(p.player)}</strong> · ${escapeHTML(p.character)} <span class="muted">(${escapeHTML(p.role)})</span> ${isAdmin?`<button class="btn btn-danger btn-small" onclick="removeEventPlayer(${e.id},${p.id})">🗑️</button>`:`<button class="btn btn-danger btn-small" onclick="removeOwnSignup(${p.id})">×</button>`}</div>`).join(""):'<span class="muted">Keine Einträge</span>';c.insertAdjacentHTML("beforeend",`<article class="event-card"><div class="card-header"><div><div class="card-title">🎉 ${escapeHTML(e.name)}</div><div class="card-meta">🏷️ ${escapeHTML(e.type)}<br>📅 ${formatDate(e.date)}<br>🕐 ${escapeHTML(e.time)} Uhr</div></div>${isAdmin?`<div><button class="btn btn-secondary btn-small" onclick="openEventForm(${e.id})">✏️ Bearbeiten</button> <button class="btn btn-danger btn-small" onclick="deleteEvent(${e.id})">🗑️ Löschen</button></div>`:""}</div><div class="card-body">${renderCountdown(e)}${e.description?`<p class="card-description">${escapeHTML(e.description)}</p>`:""}<div class="limit-box"><div class="limit-item limit-tank"><strong>${tanks}/${e.tank_limit}</strong>🛡️ Tanks</div><div class="limit-item limit-heal"><strong>${heals}/${e.heal_limit}</strong>💚 Heiler</div><div class="limit-item limit-dd"><strong>${dds}/${e.dd_limit}</strong>⚔️ DDs</div></div><div class="progress-label"><span>Teilnehmer</span><span>${confirmed.length}/${e.max}</span></div><div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div><div class="player-grid">${ph}</div><div class="status-groups"><div class="status-group bench"><h4>🪑 Ersatzbank (${bench.length})</h4>${statusList(bench)}</div><div class="status-group uncertain"><h4>❓ Unsicher (${uncertain.length})</h4>${statusList(uncertain)}</div><div class="status-group absent"><h4>🚫 Abwesend (${absent.length})</h4>${statusList(absent)}</div></div><br><button class="btn btn-primary" onclick="openSignup('event',${e.id})">+ Anmeldung / Status setzen</button></div></article>`);});}
